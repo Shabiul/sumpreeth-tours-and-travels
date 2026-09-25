@@ -269,7 +269,7 @@ export function serviceAreaJsonLd(townNames: string[]) {
     "@context": "https://schema.org",
     "@type": "Service",
     serviceType: "One-way, round-trip and local taxi service",
-    name: "Sumpreeth Tours and Travels — Karnataka service area",
+    name: "Sumpreeth Tours and Travels — service area",
     provider: { "@id": `${SITE_URL}/#business` },
     areaServed: townNames.map((name) => ({ "@type": "Place", name })),
   };

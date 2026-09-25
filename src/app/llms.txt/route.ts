@@ -40,6 +40,7 @@ export async function GET() {
     `- Fleet & rates (one-way, round trip, local, airport): ${canonical("/fleet")}`,
     `- Tours & Packages (multi-day itineraries): ${canonical("/tours-packages")}`,
     `- Destinations & cab routes: ${canonical("/destination")}`,
+    `- Areas served (districts, towns & outstation routes): ${canonical("/areas-we-serve")}`,
     `- Contact / enquiry: ${canonical("/contact")}`,
     `- About: ${canonical("/about")}`,
     "",

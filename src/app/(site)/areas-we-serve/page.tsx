@@ -6,6 +6,7 @@ import { contactLink } from "@/lib/whatsapp";
 import { slugify } from "@/lib/validation";
 import { serviceAreaJsonLd } from "@/lib/structured-data";
 import { KARNATAKA_AREAS, KARNATAKA_TOWN_COUNT } from "@/lib/karnataka-areas";
+import { INTERSTATE_AREAS, INTERSTATE_TOWN_COUNT } from "@/lib/interstate-areas";
 import PageHeader from "@/components/site/PageHeader";
 import Section from "@/components/site/Section";
 import CtaBanner from "@/components/site/CtaBanner";
@@ -13,8 +14,8 @@ import CtaBanner from "@/components/site/CtaBanner";
 export const revalidate = 3600;
 
 export const metadata = pageMeta({
-  title: "Areas We Serve — One-Way Taxi Across Karnataka",
-  description: `One-way, round-trip and local taxi coverage across all 31 Karnataka districts — ${KARNATAKA_TOWN_COUNT}+ towns and taluks, from Bengaluru to the interior.`,
+  title: "Areas We Serve — One-Way Taxi Across Karnataka & South India",
+  description: `One-way, round-trip and local taxi coverage across all 31 Karnataka districts (${KARNATAKA_TOWN_COUNT}+ towns) plus ${INTERSTATE_TOWN_COUNT}+ towns across Tamil Nadu, Kerala, Andhra Pradesh and Telangana.`,
   path: "/areas-we-serve",
 });
 
@@ -29,9 +30,14 @@ export default async function AreasWeServePage() {
   const TOWN_ALIASES: Record<string, string> = {
     kgf: "kolar-gold-fields",
     gokak: "gokak-falls",
+    trichy: "trichy-tiruchirappalli",
+    trivandrum: "trivandrum-kovalam",
+    alappuzha: "alleppey-kerala-backwaters",
   };
   const waHref = contactLink(settings.whatsappNumber);
-  const allTowns = KARNATAKA_AREAS.flatMap((d) => d.towns);
+  const allKarnatakaTowns = KARNATAKA_AREAS.flatMap((d) => d.towns);
+  const allInterstateTowns = INTERSTATE_AREAS.flatMap((s) => s.areas.flatMap((a) => a.towns));
+  const allTowns = [...allKarnatakaTowns, ...allInterstateTowns];
 
   return (
     <>
@@ -43,8 +49,8 @@ export default async function AreasWeServePage() {
       <PageHeader
         trail={[["Areas We Serve", "/areas-we-serve"]]}
         eyebrow="Coverage"
-        title="One-Way & Outstation Taxi Across Every District of Karnataka"
-        intro={`Sumpreeth Tours and Travels runs one-way cabs, round trips and local rentals to ${KARNATAKA_TOWN_COUNT}+ towns and taluks across all 31 Karnataka districts — not just the well-known tourist routes. Don't see your town below? Ask us on WhatsApp; we cover interior Karnataka on request.`}
+        title="One-Way & Outstation Taxi Across Karnataka & South India"
+        intro={`Sumpreeth Tours and Travels runs one-way cabs, round trips and local rentals to ${KARNATAKA_TOWN_COUNT}+ towns and taluks across all 31 Karnataka districts, plus ${INTERSTATE_TOWN_COUNT}+ outstation drop points across Tamil Nadu, Kerala, Andhra Pradesh and Telangana. Don't see your town below? Ask us on WhatsApp; we cover interior routes on request.`}
       />
 
       <Section>
@@ -55,13 +61,14 @@ export default async function AreasWeServePage() {
           still a real pickup/drop point — message us on WhatsApp for a fare.
         </p>
 
-        <div className="reveal-stagger mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <h2 className="reveal mt-10 text-h4 font-bold text-ink">Karnataka — by district</h2>
+        <div className="reveal-stagger mt-4 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {KARNATAKA_AREAS.map((d) => (
             <div key={d.district} className="reveal card p-5">
-              <h2 className="flex items-center gap-1.5 text-sm font-bold text-ink">
+              <h3 className="flex items-center gap-1.5 text-sm font-bold text-ink">
                 <MapPin className="h-4 w-4 shrink-0 text-forest-500 dark:text-forest-400" />
                 {d.district}
-              </h2>
+              </h3>
               <ul className="mt-3 flex flex-wrap gap-1.5">
                 {d.towns.map((town) => {
                   const rawSlug = slugify(town);
@@ -88,6 +95,47 @@ export default async function AreasWeServePage() {
             </div>
           ))}
         </div>
+
+        {INTERSTATE_AREAS.map((s) => (
+          <div key={s.state}>
+            <h2 className="reveal mt-12 text-h4 font-bold text-ink">
+              {s.state} — outstation one-way routes
+            </h2>
+            <div className="reveal-stagger mt-4 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {s.areas.map((a) => (
+                <div key={a.region} className="reveal card p-5">
+                  <h3 className="flex items-center gap-1.5 text-sm font-bold text-ink">
+                    <MapPin className="h-4 w-4 shrink-0 text-forest-500 dark:text-forest-400" />
+                    {a.region}
+                  </h3>
+                  <ul className="mt-3 flex flex-wrap gap-1.5">
+                    {a.towns.map((town) => {
+                      const rawSlug = slugify(town);
+                      const slug = TOWN_ALIASES[rawSlug] ?? rawSlug;
+                      const hasPage = destSlugs.has(slug);
+                      return (
+                        <li key={town}>
+                          {hasPage ? (
+                            <Link
+                              href={`/destination/${slug}`}
+                              className="inline-block rounded-full bg-forest-50 px-2.5 py-1 text-xs font-medium text-forest-800 hover:bg-forest-100 dark:bg-white/[0.04] dark:text-forest-200"
+                            >
+                              {town}
+                            </Link>
+                          ) : (
+                            <span className="inline-block rounded-full bg-page px-2.5 py-1 text-xs text-bodytext ring-1 ring-line">
+                              {town}
+                            </span>
+                          )}
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
 
         <div className="reveal mt-10 rounded-2xl bg-forest-50 p-5 text-sm text-ink dark:bg-white/[0.04]">
           <p className="font-semibold">Don&apos;t see your exact village or pickup point?</p>

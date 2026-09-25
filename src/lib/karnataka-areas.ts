@@ -58,7 +58,7 @@ export const KARNATAKA_AREAS: KarnatakaDistrict[] = [
     district: "Mandya",
     towns: [
       "Mandya", "Maddur", "Malavalli", "Srirangapatna", "Krishnarajpet",
-      "Nagamangala", "Pandavapura",
+      "Nagamangala", "Pandavapura", "Melkote",
     ],
   },
   {
@@ -101,7 +101,7 @@ export const KARNATAKA_AREAS: KarnatakaDistrict[] = [
     district: "Udupi",
     towns: [
       "Udupi", "Kundapura", "Karkala", "Brahmavar", "Kaup", "Byndoor",
-      "Manipal", "Malpe",
+      "Manipal", "Malpe", "Kollur",
     ],
   },
   {
