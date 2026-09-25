@@ -20,6 +20,7 @@ import {
   Select,
   Checkbox,
 } from "@/components/admin/form";
+import { ImageUpload, ImageListUpload } from "@/components/admin/ImageUpload";
 
 export default function PackageForm({ pkg }: { pkg?: TourPackage }) {
   const [state, action] = useActionState(savePackageAction, emptyResult);
@@ -96,9 +97,17 @@ export default function PackageForm({ pkg }: { pkg?: TourPackage }) {
         <h2 className="mb-3 text-sm font-bold uppercase tracking-wide text-forest-700/70">
           Duration &amp; pricing
         </h2>
-        <div className="grid gap-4 sm:grid-cols-4">
+        <div className="grid gap-4 sm:grid-cols-5">
           <Text name="durationDays" label="Days" type="number" defaultValue={pkg?.durationDays ?? 3} error={fe.durationDays} required />
           <Text name="durationNights" label="Nights" type="number" defaultValue={pkg?.durationNights ?? 2} error={fe.durationNights} required />
+          <Text
+            name="distanceKm"
+            label="Distance (km)"
+            type="number"
+            defaultValue={pkg?.distanceKm ?? undefined}
+            error={fe.distanceKm}
+            hint="Round trip distance from Bangalore"
+          />
           <Text
             name="startingPrice"
             label="Starting price (₹)"
@@ -140,20 +149,20 @@ export default function PackageForm({ pkg }: { pkg?: TourPackage }) {
             error={fe.description}
             rows={5}
           />
-          <Text
+          <ImageUpload
             name="featuredImage"
-            label="Featured image URL"
+            label="Featured image"
+            folder="packages"
             defaultValue={pkg?.featuredImage}
             error={fe.featuredImage}
             required
           />
-          <Textarea
+          <ImageListUpload
             name="gallery"
             label="Gallery images"
+            folder="packages"
             defaultValue={gallery}
             error={fe.gallery}
-            rows={3}
-            hint="One image URL per line."
           />
         </div>
       </div>

@@ -64,6 +64,7 @@ export async function savePackageAction(
       category: encodeList(p.category),
       durationDays: p.durationDays,
       durationNights: p.durationNights,
+      distanceKm: p.distanceKm,
       startingPrice: p.startingPrice,
       priceType: p.priceType,
       shortDescription: p.shortDescription,

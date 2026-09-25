@@ -16,10 +16,11 @@ import {
 
 export const dynamic = "force-dynamic";
 
-type Tab = "all" | "published" | "drafts" | "featured" | "popular";
+type Tab = "all" | "oneDay" | "published" | "drafts" | "featured" | "popular";
 
 const TABS: { key: Tab; label: string }[] = [
   { key: "all", label: "All packages" },
+  { key: "oneDay", label: "1-day trips" },
   { key: "published", label: "Published" },
   { key: "drafts", label: "Drafts" },
   { key: "featured", label: "Featured" },
@@ -35,15 +36,17 @@ export default async function PackagesAdminPage({
   const tab: Tab = (TABS.find((t) => t.key === tabParam)?.key ?? "all") as Tab;
 
   const where: Prisma.TourPackageWhereInput =
-    tab === "published"
-      ? { isActive: true }
-      : tab === "drafts"
-        ? { isActive: false }
-        : tab === "featured"
-          ? { featured: true }
-          : tab === "popular"
-            ? { popular: true }
-            : {};
+    tab === "oneDay"
+      ? { durationDays: 1 }
+      : tab === "published"
+        ? { isActive: true }
+        : tab === "drafts"
+          ? { isActive: false }
+          : tab === "featured"
+            ? { featured: true }
+            : tab === "popular"
+              ? { popular: true }
+              : {};
 
   const [packages, total] = await Promise.all([
     prisma.tourPackage.findMany({
@@ -87,6 +90,7 @@ export default async function PackagesAdminPage({
                 <th className="px-4 py-3">Package</th>
                 <th className="px-4 py-3">Destination</th>
                 <th className="px-4 py-3">Duration</th>
+                <th className="px-4 py-3">Distance</th>
                 <th className="px-4 py-3">Price</th>
                 <th className="px-4 py-3">Status</th>
                 <th className="px-4 py-3 text-right">Actions</th>
@@ -115,6 +119,9 @@ export default async function PackagesAdminPage({
                   </td>
                   <td className="px-4 py-3 text-forest-700/80">
                     {p.durationNights}N / {p.durationDays}D
+                  </td>
+                  <td className="px-4 py-3 text-forest-700/80">
+                    {p.distanceKm != null ? `${p.distanceKm} km` : "—"}
                   </td>
                   <td className="px-4 py-3 text-forest-700/80">
                     {p.startingPrice != null ? rupees(p.startingPrice) : "On request"}

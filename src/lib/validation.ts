@@ -156,6 +156,7 @@ export const packageSchema = z.object({
   category: z.array(packageCategoryEnum).default([]),
   durationDays: z.coerce.number().int().min(1).max(30),
   durationNights: z.coerce.number().int().min(0).max(30),
+  distanceKm: intFromForm,
   startingPrice: intFromForm,
   priceType: packagePriceTypeEnum.default("PER_PACKAGE"),
   shortDescription: z.string().trim().min(10, "Enter a short description").max(220),

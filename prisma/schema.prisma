@@ -193,6 +193,7 @@ model TourPackage {
 
   durationDays   Int
   durationNights Int
+  distanceKm     Int?
   startingPrice  Int?
   priceType      String @default("PER_PACKAGE") // PER_PACKAGE | PER_PERSON
 
