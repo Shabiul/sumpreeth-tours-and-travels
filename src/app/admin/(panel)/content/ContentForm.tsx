@@ -10,6 +10,7 @@ import {
   Text,
   Textarea,
 } from "@/components/admin/form";
+import { ImageUpload } from "@/components/admin/ImageUpload";
 
 export default function ContentForm({ settings }: { settings: SiteSettings }) {
   const [state, action] = useActionState(saveContentAction, emptyResult);
@@ -23,7 +24,7 @@ export default function ContentForm({ settings }: { settings: SiteSettings }) {
         </h2>
         <Text name="heroHeadline" label="Headline" defaultValue={settings.heroHeadline} error={fe.heroHeadline} />
         <Textarea name="heroSubheadline" label="Subheadline" defaultValue={settings.heroSubheadline} error={fe.heroSubheadline} rows={2} />
-        <Text name="heroImageUrl" label="Hero image URL" defaultValue={settings.heroImageUrl} error={fe.heroImageUrl} />
+        <ImageUpload name="heroImageUrl" label="Hero image" folder="hero" defaultValue={settings.heroImageUrl} error={fe.heroImageUrl} />
       </section>
 
       <section className="space-y-4">

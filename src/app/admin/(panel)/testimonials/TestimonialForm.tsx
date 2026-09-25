@@ -13,6 +13,7 @@ import {
   Select,
   Checkbox,
 } from "@/components/admin/form";
+import { ImageUpload } from "@/components/admin/ImageUpload";
 
 export default function TestimonialForm({ item }: { item?: Testimonial }) {
   const [state, action] = useActionState(saveTestimonialAction, emptyResult);
@@ -35,7 +36,7 @@ export default function TestimonialForm({ item }: { item?: Testimonial }) {
             label: `${n} star${n > 1 ? "s" : ""}`,
           }))}
         />
-        <Text name="imageUrl" label="Photo URL (optional)" defaultValue={item?.imageUrl} error={fe.imageUrl} />
+        <ImageUpload name="imageUrl" label="Photo (optional)" folder="testimonials" defaultValue={item?.imageUrl} error={fe.imageUrl} />
       </div>
 
       <Textarea

@@ -14,6 +14,13 @@ const ga = "https://www.googletagmanager.com";
 const gaData =
   "https://www.google-analytics.com https://*.google-analytics.com https://*.analytics.google.com";
 
+// Supabase Storage — hostname derived from SUPABASE_URL so it isn't hardcoded
+// to one project. All uploaded images (fleet/destination/package/etc.) are
+// served from `${SUPABASE_URL}/storage/v1/object/public/images/...`.
+const supabaseHost = process.env.SUPABASE_URL
+  ? new URL(process.env.SUPABASE_URL).hostname
+  : null;
+
 const csp = [
   "default-src 'self'",
   "base-uri 'self'",
@@ -26,7 +33,7 @@ const csp = [
   // Fonts are self-hosted via next/font; only inline styles remain.
   "style-src 'self' 'unsafe-inline'",
   "font-src 'self'",
-  `img-src 'self' data: blob: https://images.unsplash.com https://plus.unsplash.com https://maps.gstatic.com https://maps.googleapis.com ${ga} ${gaData}`,
+  `img-src 'self' data: blob: https://images.unsplash.com https://plus.unsplash.com https://maps.gstatic.com https://maps.googleapis.com${supabaseHost ? ` https://${supabaseHost}` : ""} ${ga} ${gaData}`,
   "frame-src https://www.google.com https://maps.google.com",
   `connect-src 'self' ${ga} ${gaData}`,
   "media-src 'self'",
@@ -64,6 +71,7 @@ const nextConfig = {
     remotePatterns: [
       { protocol: "https", hostname: "images.unsplash.com" },
       { protocol: "https", hostname: "plus.unsplash.com" },
+      ...(supabaseHost ? [{ protocol: "https", hostname: supabaseHost }] : []),
     ],
   },
   async headers() {

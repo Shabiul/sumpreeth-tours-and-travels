@@ -20,6 +20,7 @@ import {
   Select,
   Checkbox,
 } from "@/components/admin/form";
+import { ImageUpload } from "@/components/admin/ImageUpload";
 
 export default function DestinationForm({ dest }: { dest?: Destination }) {
   const [state, action] = useActionState(saveDestinationAction, emptyResult);
@@ -51,7 +52,7 @@ export default function DestinationForm({ dest }: { dest?: Destination }) {
             label: PACKAGE_STATE_LABELS[k],
           }))}
         />
-        <Text name="imageUrl" label="Image URL" defaultValue={dest?.imageUrl} error={fe.imageUrl} required />
+        <ImageUpload name="imageUrl" label="Image" folder="destinations" defaultValue={dest?.imageUrl} error={fe.imageUrl} required />
         <Text name="distanceKm" label="Distance from Bangalore (km)" type="number" defaultValue={dest?.distanceKm} error={fe.distanceKm} />
         <Text
           name="packageSlug"

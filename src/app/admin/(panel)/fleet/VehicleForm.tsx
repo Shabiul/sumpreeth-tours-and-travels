@@ -15,6 +15,7 @@ import {
   Select,
   Checkbox,
 } from "@/components/admin/form";
+import { ImageUpload, ImageListUpload } from "@/components/admin/ImageUpload";
 
 export default function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
   const [state, action] = useActionState(saveVehicleAction, emptyResult);
@@ -36,16 +37,16 @@ export default function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
           )}
         />
         <Text name="seats" label="Seats" defaultValue={vehicle?.seats} error={fe.seats} hint="e.g. 4+1, 12+1, 30-45" required />
-        <Text name="imageUrl" label="Cover image" defaultValue={vehicle?.imageUrl} error={fe.imageUrl} hint="URL or /images/fleet/photo.jpg" required />
+        <ImageUpload name="imageUrl" label="Cover image" folder="fleet" defaultValue={vehicle?.imageUrl} error={fe.imageUrl} required />
       </div>
 
-      <Textarea
+      <ImageListUpload
         name="images"
         label="Additional photos"
+        folder="fleet"
         defaultValue={decodeFeatures(vehicle?.images).join("\n")}
         error={fe.images}
-        hint="One image URL or /images/... path per line. Shown as a carousel on the fleet card."
-        rows={4}
+        hint="Shown as a carousel on the fleet card."
       />
 
       <Textarea
