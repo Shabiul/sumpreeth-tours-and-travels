@@ -31,24 +31,50 @@ export const dynamic = "force-dynamic";
 export default async function DashboardPage() {
   const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
 
-  const [newCount, weekCount, totalCount, bookedCount, recent, counts] =
-    await Promise.all([
-      prisma.enquiry.count({ where: { status: "NEW" } }),
-      prisma.enquiry.count({ where: { createdAt: { gte: weekAgo } } }),
-      prisma.enquiry.count(),
-      prisma.enquiry.count({ where: { status: "BOOKED" } }),
-      prisma.enquiry.findMany({ orderBy: { createdAt: "desc" }, take: 8 }),
-      Promise.all([
-        prisma.vehicle.count(),
-        prisma.destination.count(),
-        prisma.testimonial.count(),
-        prisma.faqItem.count(),
-        prisma.tourPackage.count(),
-      ]),
-    ]);
+  // A single round trip for every count instead of 9 — each one adds real
+  // latency to the pooled connection, so this collapses them into one query.
+  const [counts, recent] = await Promise.all([
+    prisma.$queryRaw<
+      {
+        new_count: bigint;
+        week_count: bigint;
+        total_count: bigint;
+        booked_count: bigint;
+        vehicle_count: bigint;
+        destination_count: bigint;
+        testimonial_count: bigint;
+        faq_count: bigint;
+        package_count: bigint;
+      }[]
+    >`
+      SELECT
+        (SELECT count(*) FROM "Enquiry" WHERE status = 'NEW') AS new_count,
+        (SELECT count(*) FROM "Enquiry" WHERE "createdAt" >= ${weekAgo}) AS week_count,
+        (SELECT count(*) FROM "Enquiry") AS total_count,
+        (SELECT count(*) FROM "Enquiry" WHERE status = 'BOOKED') AS booked_count,
+        (SELECT count(*) FROM "Vehicle") AS vehicle_count,
+        (SELECT count(*) FROM "Destination") AS destination_count,
+        (SELECT count(*) FROM "Testimonial") AS testimonial_count,
+        (SELECT count(*) FROM "FaqItem") AS faq_count,
+        (SELECT count(*) FROM "TourPackage") AS package_count
+    `,
+    prisma.enquiry.findMany({ orderBy: { createdAt: "desc" }, take: 8 }),
+  ]);
 
-  const [vehicleCount, destinationCount, testimonialCount, faqCount, packageCount] =
-    counts;
+  const {
+    new_count: newCount,
+    week_count: weekCount,
+    total_count: totalCount,
+    booked_count: bookedCount,
+    vehicle_count: vehicleCount,
+    destination_count: destinationCount,
+    testimonial_count: testimonialCount,
+    faq_count: faqCount,
+    package_count: packageCount,
+  } = Object.fromEntries(Object.entries(counts[0]).map(([k, v]) => [k, Number(v)])) as Record<
+    keyof (typeof counts)[0],
+    number
+  >;
 
   const stats = [
     {
