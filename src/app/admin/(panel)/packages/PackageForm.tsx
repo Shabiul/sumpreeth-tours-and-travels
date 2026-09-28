@@ -2,7 +2,7 @@
 
 import { useActionState } from "react";
 import Link from "next/link";
-import type { TourPackage } from "@prisma/client";
+import type { TourPackage } from "@/lib/types";
 import { savePackageAction } from "./actions";
 import {
   PACKAGE_STATE_LABELS,

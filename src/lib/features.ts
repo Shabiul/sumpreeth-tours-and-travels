@@ -1,4 +1,4 @@
-import type { Vehicle } from "@prisma/client";
+import type { Vehicle } from "./types";
 
 /**
  * `Vehicle.features` is stored as a JSON string array (SQLite has no scalar

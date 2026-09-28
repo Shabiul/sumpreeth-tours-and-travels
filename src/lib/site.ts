@@ -1,7 +1,7 @@
 import "server-only";
 import { unstable_cache } from "next/cache";
-import { prisma } from "./db";
-import type { Destination } from "@prisma/client";
+import { db, unwrap } from "./supabase";
+import type { Destination } from "./types";
 import { decodeFeatures, type VehicleView } from "./features";
 import { decodePackage, decodeList, type PackageView } from "./packages";
 
@@ -54,7 +54,7 @@ const FALLBACK_SETTINGS = {
   instagramUrl: null as string | null,
   youtubeUrl: null as string | null,
   adminPasswordHash: null as string | null,
-  updatedAt: new Date(0),
+  updatedAt: new Date(0).toISOString(),
 };
 
 export type SiteSettingsData = typeof FALLBACK_SETTINGS;
@@ -62,10 +62,8 @@ export type SiteSettingsData = typeof FALLBACK_SETTINGS;
 export const getSiteSettings = unstable_cache(
   async (): Promise<SiteSettingsData> => {
     try {
-      const row = await prisma.siteSettings.findUnique({
-        where: { id: "singleton" },
-      });
-      return row ?? FALLBACK_SETTINGS;
+      const { data } = await db.from("SiteSettings").select("*").eq("id", "singleton").maybeSingle();
+      return (data as SiteSettingsData | null) ?? FALLBACK_SETTINGS;
     } catch {
       return FALLBACK_SETTINGS;
     }
@@ -77,10 +75,14 @@ export const getSiteSettings = unstable_cache(
 export const getVehicles = unstable_cache(
   async (): Promise<VehicleView[]> => {
     try {
-      const rows = await prisma.vehicle.findMany({
-        where: { isActive: true },
-        orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
-      });
+      const rows = unwrap<import("./types").Vehicle[]>(
+        await db
+          .from("Vehicle")
+          .select("*")
+          .eq("isActive", true)
+          .order("sortOrder", { ascending: true })
+          .order("name", { ascending: true }),
+      );
       return rows.map((r) => ({
         ...r,
         features: decodeFeatures(r.features),
@@ -105,10 +107,14 @@ export async function getVehicleBySlug(
 export const getDestinations = unstable_cache(
   async (): Promise<DestinationView[]> => {
     try {
-      const rows = await prisma.destination.findMany({
-        where: { isActive: true },
-        orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
-      });
+      const rows = unwrap<Destination[]>(
+        await db
+          .from("Destination")
+          .select("*")
+          .eq("isActive", true)
+          .order("sortOrder", { ascending: true })
+          .order("name", { ascending: true }),
+      );
       return rows.map(decodeDestination);
     } catch {
       return [];
@@ -127,12 +133,16 @@ export async function getDestinationBySlug(
 }
 
 export const getTestimonials = unstable_cache(
-  async () => {
+  async (): Promise<import("./types").Testimonial[]> => {
     try {
-      return await prisma.testimonial.findMany({
-        where: { isActive: true },
-        orderBy: [{ sortOrder: "asc" }, { createdAt: "desc" }],
-      });
+      return unwrap<import("./types").Testimonial[]>(
+        await db
+          .from("Testimonial")
+          .select("*")
+          .eq("isActive", true)
+          .order("sortOrder", { ascending: true })
+          .order("createdAt", { ascending: false }),
+      );
     } catch {
       return [];
     }
@@ -144,10 +154,14 @@ export const getTestimonials = unstable_cache(
 export const getPackages = unstable_cache(
   async (): Promise<PackageView[]> => {
     try {
-      const rows = await prisma.tourPackage.findMany({
-        where: { isActive: true },
-        orderBy: [{ sortOrder: "asc" }, { title: "asc" }],
-      });
+      const rows = unwrap<import("./types").TourPackage[]>(
+        await db
+          .from("TourPackage")
+          .select("*")
+          .eq("isActive", true)
+          .order("sortOrder", { ascending: true })
+          .order("title", { ascending: true }),
+      );
       return rows.map(decodePackage);
     } catch {
       return [];
@@ -164,12 +178,16 @@ export async function getPackageBySlug(slug: string): Promise<PackageView | null
 }
 
 export const getFaqs = unstable_cache(
-  async () => {
+  async (): Promise<import("./types").FaqItem[]> => {
     try {
-      return await prisma.faqItem.findMany({
-        where: { isActive: true },
-        orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
-      });
+      return unwrap<import("./types").FaqItem[]>(
+        await db
+          .from("FaqItem")
+          .select("*")
+          .eq("isActive", true)
+          .order("sortOrder", { ascending: true })
+          .order("createdAt", { ascending: true }),
+      );
     } catch {
       return [];
     }

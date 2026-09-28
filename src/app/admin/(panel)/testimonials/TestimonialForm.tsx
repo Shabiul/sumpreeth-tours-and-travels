@@ -2,7 +2,7 @@
 
 import { useActionState } from "react";
 import Link from "next/link";
-import type { Testimonial } from "@prisma/client";
+import type { Testimonial } from "@/lib/types";
 import { saveTestimonialAction } from "./actions";
 import {
   emptyResult,

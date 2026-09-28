@@ -2,7 +2,7 @@
 
 import { useActionState } from "react";
 import Link from "next/link";
-import type { FaqItem } from "@prisma/client";
+import type { FaqItem } from "@/lib/types";
 import { saveFaqAction } from "./actions";
 import {
   emptyResult,

@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
-import { prisma } from "@/lib/db";
+import { db } from "@/lib/supabase";
+import type { TourPackage } from "@/lib/types";
 import { PageTitle, Panel } from "@/components/admin/ui";
 import { deletePackageAction } from "../actions";
 import PackageForm from "../PackageForm";
@@ -12,8 +13,9 @@ export default async function EditPackagePage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const pkg = await prisma.tourPackage.findUnique({ where: { id } });
-  if (!pkg) notFound();
+  const { data } = await db.from("TourPackage").select("*").eq("id", id).maybeSingle();
+  if (!data) notFound();
+  const pkg = data as TourPackage;
 
   return (
     <>

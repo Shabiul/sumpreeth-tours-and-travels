@@ -1,4 +1,4 @@
-import type { TourPackage } from "@prisma/client";
+import type { TourPackage } from "./types";
 
 /**
  * `TourPackage`'s list-shaped columns are stored as JSON strings (same

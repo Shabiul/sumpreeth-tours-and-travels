@@ -1,14 +1,19 @@
 import Link from "next/link";
-import { prisma } from "@/lib/db";
+import { db, unwrap } from "@/lib/supabase";
+import type { FaqItem } from "@/lib/types";
 import { PageTitle, Panel, EmptyState, LinkButton } from "@/components/admin/ui";
 import { toggleFaqAction } from "./actions";
 
 export const dynamic = "force-dynamic";
 
 export default async function FaqsAdminPage() {
-  const items = await prisma.faqItem.findMany({
-    orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
-  });
+  const items = unwrap<FaqItem[]>(
+    await db
+      .from("FaqItem")
+      .select("*")
+      .order("sortOrder", { ascending: true })
+      .order("createdAt", { ascending: true }),
+  );
 
   return (
     <>

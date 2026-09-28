@@ -1,6 +1,6 @@
 import { type NextRequest } from "next/server";
-import type { Prisma } from "@prisma/client";
-import { prisma } from "@/lib/db";
+import { db } from "@/lib/supabase";
+import type { Enquiry } from "@/lib/types";
 import { isAuthenticated } from "@/lib/session";
 import {
   SERVICE_TYPE_LABELS,
@@ -25,31 +25,27 @@ export async function GET(req: NextRequest) {
   }
 
   const sp = req.nextUrl.searchParams;
-  const where: Prisma.EnquiryWhereInput = {};
   const status = sp.get("status");
   const serviceType = sp.get("serviceType");
   const q = sp.get("q");
 
+  let query = db.from("Enquiry").select("*");
   if (status && ENQUIRY_STATUS_ORDER.includes(status as never)) {
-    where.status = status as never;
+    query = query.eq("status", status);
   }
   if (serviceType && SERVICE_TYPE_ORDER.includes(serviceType as never)) {
-    where.serviceType = serviceType as never;
+    query = query.eq("serviceType", serviceType);
   }
   if (q) {
-    where.OR = [
-      { name: { contains: q } },
-      { phone: { contains: q } },
-      { pickupLocation: { contains: q } },
-      { dropLocation: { contains: q } },
-    ];
+    const safeQ = q.replace(/[,()]/g, "");
+    query = query.or(
+      `name.ilike.%${safeQ}%,phone.ilike.%${safeQ}%,pickupLocation.ilike.%${safeQ}%,dropLocation.ilike.%${safeQ}%`,
+    );
   }
 
-  const rows = await prisma.enquiry.findMany({
-    where,
-    orderBy: { createdAt: "desc" },
-    take: 5000,
-  });
+  const { data, error } = await query.order("createdAt", { ascending: false }).limit(5000);
+  if (error) return new Response("Failed to export.", { status: 500 });
+  const rows = (data ?? []) as Enquiry[];
 
   const header = [
     "Received",

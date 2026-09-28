@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { prisma } from "@/lib/db";
+import { db } from "@/lib/supabase";
 import { requireAdmin } from "@/lib/session";
 import { enquiryStatusEnum } from "@/lib/validation";
 import type { ActionResult } from "@/components/admin/form";
@@ -21,14 +21,15 @@ export async function updateEnquiryAction(
     return { error: "Invalid data." };
   }
 
-  try {
-    await prisma.enquiry.update({
-      where: { id },
-      data: { status: status.data, adminNotes: adminNotes || null },
-    });
-  } catch {
-    return { error: "Could not update this enquiry." };
-  }
+  const { error } = await db
+    .from("Enquiry")
+    .update({
+      status: status.data,
+      adminNotes: adminNotes || null,
+      updatedAt: new Date().toISOString(),
+    })
+    .eq("id", id);
+  if (error) return { error: "Could not update this enquiry." };
 
   revalidatePath("/admin/enquiries");
   revalidatePath(`/admin/enquiries/${id}`);
@@ -41,7 +42,10 @@ export async function quickStatusAction(formData: FormData): Promise<void> {
   const id = String(formData.get("id") ?? "");
   const status = enquiryStatusEnum.safeParse(String(formData.get("status") ?? ""));
   if (!id || !status.success) return;
-  await prisma.enquiry.update({ where: { id }, data: { status: status.data } });
+  await db
+    .from("Enquiry")
+    .update({ status: status.data, updatedAt: new Date().toISOString() })
+    .eq("id", id);
   revalidatePath("/admin/enquiries");
   revalidatePath("/admin");
 }
@@ -50,7 +54,7 @@ export async function deleteEnquiryAction(formData: FormData): Promise<void> {
   await requireAdmin();
   const id = String(formData.get("id") ?? "");
   if (!id) return;
-  await prisma.enquiry.delete({ where: { id } });
+  await db.from("Enquiry").delete().eq("id", id);
   revalidatePath("/admin/enquiries");
   revalidatePath("/admin");
 }

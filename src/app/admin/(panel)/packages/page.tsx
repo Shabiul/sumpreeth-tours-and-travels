@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Pencil, Copy } from "lucide-react";
-import { prisma } from "@/lib/db";
-import type { Prisma } from "@prisma/client";
+import { db } from "@/lib/supabase";
+import type { TourPackage } from "@/lib/types";
 import { PACKAGE_STATE_LABELS, type PackageState } from "@/lib/constants";
 import { rupees } from "@/lib/format";
 import { PageTitle, Panel, EmptyState, LinkButton } from "@/components/admin/ui";
@@ -35,32 +35,26 @@ export default async function PackagesAdminPage({
   const { tab: tabParam } = await searchParams;
   const tab: Tab = (TABS.find((t) => t.key === tabParam)?.key ?? "all") as Tab;
 
-  const where: Prisma.TourPackageWhereInput =
-    tab === "oneDay"
-      ? { durationDays: 1 }
-      : tab === "published"
-        ? { isActive: true }
-        : tab === "drafts"
-          ? { isActive: false }
-          : tab === "featured"
-            ? { featured: true }
-            : tab === "popular"
-              ? { popular: true }
-              : {};
+  let query = db.from("TourPackage").select("*", { count: "exact" });
+  if (tab === "oneDay") query = query.eq("durationDays", 1);
+  else if (tab === "published") query = query.eq("isActive", true);
+  else if (tab === "drafts") query = query.eq("isActive", false);
+  else if (tab === "featured") query = query.eq("featured", true);
+  else if (tab === "popular") query = query.eq("popular", true);
 
-  const [packages, total] = await Promise.all([
-    prisma.tourPackage.findMany({
-      where,
-      orderBy: [{ sortOrder: "asc" }, { title: "asc" }],
-    }),
-    prisma.tourPackage.count(),
+  const [{ data, error }, { count: total }] = await Promise.all([
+    query.order("sortOrder", { ascending: true }).order("title", { ascending: true }),
+    db.from("TourPackage").select("*", { count: "exact", head: true }),
   ]);
+  if (error) throw new Error(error.message);
+  const packages = (data ?? []) as TourPackage[];
+  const totalCount = total ?? 0;
 
   return (
     <>
       <PageTitle
         title="Tours & Packages"
-        subtitle={`${total} package${total === 1 ? "" : "s"} total`}
+        subtitle={`${totalCount} package${totalCount === 1 ? "" : "s"} total`}
         action={<LinkButton href="/admin/packages/new">New package</LinkButton>}
       />
 

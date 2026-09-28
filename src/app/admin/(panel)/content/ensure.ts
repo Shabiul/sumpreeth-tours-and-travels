@@ -1,12 +1,15 @@
 import "server-only";
-import { prisma } from "@/lib/db";
+import { db, unwrap } from "@/lib/supabase";
+import type { SiteSettings } from "@/lib/types";
 
-/** Create the singleton SiteSettings row with safe defaults if the seed never ran. */
-export async function seedSettingsIfMissing() {
-  return prisma.siteSettings.upsert({
-    where: { id: "singleton" },
-    update: {},
-    create: {
+/**
+ * Ensure the singleton SiteSettings row exists, seeding safe defaults if the
+ * seed script never ran. Safe to call unconditionally — a no-op if the row
+ * already exists (mirrors Prisma's old `upsert({ update: {} })`).
+ */
+export async function seedSettingsIfMissing(): Promise<SiteSettings> {
+  await db.from("SiteSettings").upsert(
+    {
       id: "singleton",
       heroHeadline: "Reliable Cabs & Outstation Travel Across Karnataka, 24/7",
       heroSubheadline:
@@ -26,6 +29,12 @@ export async function seedSettingsIfMissing() {
       address: "Bangalore – 560078, Karnataka, India",
       hours: "Open all days · 24/7",
       mapEmbedUrl: "https://www.google.com/maps?q=Bangalore%20560078&output=embed",
+      updatedAt: new Date().toISOString(),
     },
-  });
+    { onConflict: "id", ignoreDuplicates: true },
+  );
+
+  return unwrap<SiteSettings>(
+    await db.from("SiteSettings").select("*").eq("id", "singleton").single(),
+  );
 }

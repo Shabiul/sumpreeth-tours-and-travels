@@ -10,7 +10,8 @@ import {
   MessageSquareQuote,
   HelpCircle,
 } from "lucide-react";
-import { prisma } from "@/lib/db";
+import { db, unwrap } from "@/lib/supabase";
+import type { Enquiry } from "@/lib/types";
 import {
   SERVICE_TYPE_LABELS,
   type ServiceType,
@@ -32,34 +33,25 @@ export default async function DashboardPage() {
   const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
 
   // A single round trip for every count instead of 9 — each one adds real
-  // latency to the pooled connection, so this collapses them into one query.
-  const [counts, recent] = await Promise.all([
-    prisma.$queryRaw<
-      {
-        new_count: bigint;
-        week_count: bigint;
-        total_count: bigint;
-        booked_count: bigint;
-        vehicle_count: bigint;
-        destination_count: bigint;
-        testimonial_count: bigint;
-        faq_count: bigint;
-        package_count: bigint;
-      }[]
-    >`
-      SELECT
-        (SELECT count(*) FROM "Enquiry" WHERE status = 'NEW') AS new_count,
-        (SELECT count(*) FROM "Enquiry" WHERE "createdAt" >= ${weekAgo}) AS week_count,
-        (SELECT count(*) FROM "Enquiry") AS total_count,
-        (SELECT count(*) FROM "Enquiry" WHERE status = 'BOOKED') AS booked_count,
-        (SELECT count(*) FROM "Vehicle") AS vehicle_count,
-        (SELECT count(*) FROM "Destination") AS destination_count,
-        (SELECT count(*) FROM "Testimonial") AS testimonial_count,
-        (SELECT count(*) FROM "FaqItem") AS faq_count,
-        (SELECT count(*) FROM "TourPackage") AS package_count
-    `,
-    prisma.enquiry.findMany({ orderBy: { createdAt: "desc" }, take: 8 }),
+  // latency to the pooled connection. admin_dashboard_stats() is a Postgres
+  // function (see scripts/create-dashboard-rpc.ts) so this stays one call.
+  type Stats = {
+    new_count: number;
+    week_count: number;
+    total_count: number;
+    booked_count: number;
+    vehicle_count: number;
+    destination_count: number;
+    testimonial_count: number;
+    faq_count: number;
+    package_count: number;
+  };
+  const [statsRows, recentResult] = await Promise.all([
+    db.rpc("admin_dashboard_stats", { week_ago: weekAgo.toISOString() }),
+    db.from("Enquiry").select("*").order("createdAt", { ascending: false }).limit(8),
   ]);
+  const stats0 = unwrap<Stats[]>(statsRows)[0];
+  const recent = unwrap<Enquiry[]>(recentResult);
 
   const {
     new_count: newCount,
@@ -71,10 +63,7 @@ export default async function DashboardPage() {
     testimonial_count: testimonialCount,
     faq_count: faqCount,
     package_count: packageCount,
-  } = Object.fromEntries(Object.entries(counts[0]).map(([k, v]) => [k, Number(v)])) as Record<
-    keyof (typeof counts)[0],
-    number
-  >;
+  } = stats0;
 
   const stats = [
     {

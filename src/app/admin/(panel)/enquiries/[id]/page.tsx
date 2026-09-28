@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, MessageCircle, Phone } from "lucide-react";
-import { prisma } from "@/lib/db";
+import { db } from "@/lib/supabase";
+import type { Enquiry } from "@/lib/types";
 import {
   SERVICE_TYPE_LABELS,
   type ServiceType,
@@ -22,12 +23,13 @@ export default async function EnquiryDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const [enquiry, settings] = await Promise.all([
-    prisma.enquiry.findUnique({ where: { id } }),
+  const [{ data }, settings] = await Promise.all([
+    db.from("Enquiry").select("*").eq("id", id).maybeSingle(),
     getSiteSettings(),
   ]);
 
-  if (!enquiry) notFound();
+  if (!data) notFound();
+  const enquiry = data as Enquiry;
 
   const wa = whatsappLink(
     settings.whatsappNumber,

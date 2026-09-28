@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
-import type { SiteSettings } from "@prisma/client";
+import type { SiteSettings } from "@/lib/types";
 import { saveContentAction } from "./actions";
 import {
   emptyResult,

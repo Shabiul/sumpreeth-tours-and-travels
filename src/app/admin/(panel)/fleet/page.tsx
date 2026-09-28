@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Pencil } from "lucide-react";
-import { prisma } from "@/lib/db";
+import { db, unwrap } from "@/lib/supabase";
+import type { Vehicle } from "@/lib/types";
 import { VEHICLE_CATEGORY_LABELS, type VehicleCategory } from "@/lib/constants";
 import { rupees, perKm } from "@/lib/format";
 import { PageTitle, Panel, EmptyState, LinkButton } from "@/components/admin/ui";
@@ -10,9 +11,13 @@ import { toggleVehicleAction, deleteVehicleAction } from "./actions";
 export const dynamic = "force-dynamic";
 
 export default async function FleetAdminPage() {
-  const vehicles = await prisma.vehicle.findMany({
-    orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
-  });
+  const vehicles = unwrap<Vehicle[]>(
+    await db
+      .from("Vehicle")
+      .select("*")
+      .order("sortOrder", { ascending: true })
+      .order("name", { ascending: true }),
+  );
 
   return (
     <>

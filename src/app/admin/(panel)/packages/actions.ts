@@ -2,7 +2,9 @@
 
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { prisma } from "@/lib/db";
+import { db, unwrap } from "@/lib/supabase";
+import { newId } from "@/lib/id";
+import type { TourPackage } from "@/lib/types";
 import { requireAdmin } from "@/lib/session";
 import { packageSchema, slugify } from "@/lib/validation";
 import { encodeList, parseItineraryText, parseFaqText } from "@/lib/packages";
@@ -39,21 +41,19 @@ export async function savePackageAction(
     // indexed or shared URL. Only a brand-new package gets a fresh slug.
     let slug: string;
     if (id) {
-      const existing = await prisma.tourPackage.findUnique({
-        where: { id },
-        select: { slug: true },
-      });
+      const { data: existing } = await db.from("TourPackage").select("slug").eq("id", id).maybeSingle();
       if (!existing) return { error: "Package not found." };
-      slug = existing.slug;
+      slug = existing.slug as string;
     } else {
       const base = slugify(p.title) || "package";
       slug = base;
       let n = 1;
-      while (await prisma.tourPackage.findFirst({ where: { slug }, select: { id: true } })) {
+      while ((await db.from("TourPackage").select("id").eq("slug", slug).maybeSingle()).data) {
         slug = `${base}-${++n}`;
       }
     }
 
+    const now = new Date().toISOString();
     const data = {
       title: p.title,
       slug,
@@ -85,10 +85,16 @@ export async function savePackageAction(
       seoTitle: p.seoTitle || null,
       seoDescription: p.seoDescription || null,
       seoKeywords: p.seoKeywords || null,
+      updatedAt: now,
     };
 
-    if (id) await prisma.tourPackage.update({ where: { id }, data });
-    else await prisma.tourPackage.create({ data });
+    if (id) {
+      const { error } = await db.from("TourPackage").update(data).eq("id", id);
+      if (error) throw error;
+    } else {
+      const { error } = await db.from("TourPackage").insert({ id: newId(), ...data, createdAt: now });
+      if (error) throw error;
+    }
   } catch {
     return { error: "Could not save the package." };
   }
@@ -103,7 +109,7 @@ export async function deletePackageAction(formData: FormData): Promise<void> {
   await requireAdmin();
   const id = String(formData.get("id") ?? "");
   if (!id) return;
-  await prisma.tourPackage.delete({ where: { id } });
+  await db.from("TourPackage").delete().eq("id", id);
   revalidatePublic(TAGS.packages);
   revalidatePath("/tours-packages");
   revalidatePath("/admin/packages");
@@ -114,12 +120,14 @@ export async function toggleActivePackageAction(formData: FormData): Promise<voi
   await requireAdmin();
   const id = String(formData.get("id") ?? "");
   if (!id) return;
-  const current = await prisma.tourPackage.findUnique({
-    where: { id },
-    select: { isActive: true },
-  });
+  const current = unwrap<{ isActive: boolean } | null>(
+    await db.from("TourPackage").select("isActive").eq("id", id).maybeSingle(),
+  );
   if (!current) return;
-  await prisma.tourPackage.update({ where: { id }, data: { isActive: !current.isActive } });
+  await db
+    .from("TourPackage")
+    .update({ isActive: !current.isActive, updatedAt: new Date().toISOString() })
+    .eq("id", id);
   revalidatePublic(TAGS.packages);
   revalidatePath("/tours-packages");
   revalidatePath("/admin/packages");
@@ -129,12 +137,14 @@ export async function toggleFeaturedPackageAction(formData: FormData): Promise<v
   await requireAdmin();
   const id = String(formData.get("id") ?? "");
   if (!id) return;
-  const current = await prisma.tourPackage.findUnique({
-    where: { id },
-    select: { featured: true },
-  });
+  const current = unwrap<{ featured: boolean } | null>(
+    await db.from("TourPackage").select("featured").eq("id", id).maybeSingle(),
+  );
   if (!current) return;
-  await prisma.tourPackage.update({ where: { id }, data: { featured: !current.featured } });
+  await db
+    .from("TourPackage")
+    .update({ featured: !current.featured, updatedAt: new Date().toISOString() })
+    .eq("id", id);
   revalidatePublic(TAGS.packages);
   revalidatePath("/tours-packages");
   revalidatePath("/admin/packages");
@@ -144,12 +154,14 @@ export async function togglePopularPackageAction(formData: FormData): Promise<vo
   await requireAdmin();
   const id = String(formData.get("id") ?? "");
   if (!id) return;
-  const current = await prisma.tourPackage.findUnique({
-    where: { id },
-    select: { popular: true },
-  });
+  const current = unwrap<{ popular: boolean } | null>(
+    await db.from("TourPackage").select("popular").eq("id", id).maybeSingle(),
+  );
   if (!current) return;
-  await prisma.tourPackage.update({ where: { id }, data: { popular: !current.popular } });
+  await db
+    .from("TourPackage")
+    .update({ popular: !current.popular, updatedAt: new Date().toISOString() })
+    .eq("id", id);
   revalidatePublic(TAGS.packages);
   revalidatePath("/tours-packages");
   revalidatePath("/admin/packages");
@@ -161,31 +173,36 @@ export async function duplicatePackageAction(formData: FormData): Promise<void> 
   await requireAdmin();
   const id = String(formData.get("id") ?? "");
   if (!id) return;
-  const src = await prisma.tourPackage.findUnique({ where: { id } });
-  if (!src) return;
+  const { data } = await db.from("TourPackage").select("*").eq("id", id).maybeSingle();
+  if (!data) return;
+  const src = data as TourPackage;
 
   const base = slugify(`${src.title}-copy`) || "package-copy";
   let slug = base;
   let n = 1;
-  while (await prisma.tourPackage.findFirst({ where: { slug }, select: { id: true } })) {
+  while ((await db.from("TourPackage").select("id").eq("slug", slug).maybeSingle()).data) {
     slug = `${base}-${++n}`;
   }
 
-  const {
-    id: _id,
-    createdAt: _createdAt,
-    updatedAt: _updatedAt,
-    ...rest
-  } = src;
+  const { id: _id, createdAt: _createdAt, updatedAt: _updatedAt, ...rest } = src;
   void _id;
   void _createdAt;
   void _updatedAt;
 
-  const copy = await prisma.tourPackage.create({
-    data: { ...rest, title: `${src.title} (Copy)`, slug, isActive: false },
+  const now = new Date().toISOString();
+  const newPkgId = newId();
+  const { error } = await db.from("TourPackage").insert({
+    ...rest,
+    id: newPkgId,
+    title: `${src.title} (Copy)`,
+    slug,
+    isActive: false,
+    createdAt: now,
+    updatedAt: now,
   });
+  if (error) return;
 
   revalidatePublic(TAGS.packages);
   revalidatePath("/admin/packages");
-  redirect(`/admin/packages/${copy.id}`);
+  redirect(`/admin/packages/${newPkgId}`);
 }

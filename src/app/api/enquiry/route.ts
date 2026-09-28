@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { prisma } from "@/lib/db";
+import { db } from "@/lib/supabase";
+import { newId } from "@/lib/id";
 import { enquiryInputSchema } from "@/lib/validation";
 import { rateLimit, rateLimitHeaders } from "@/lib/rate-limit";
 
@@ -52,27 +53,28 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const enquiry = await prisma.enquiry.create({
-      data: {
-        name: data.name,
-        phone: data.phone,
-        serviceType: data.serviceType,
-        pickupLocation: data.pickupLocation,
-        dropLocation: data.dropLocation || null,
-        pickupAt: data.pickupAt ? new Date(data.pickupAt) : null,
-        message: data.message || null,
-        sourcePage: data.sourcePage || "home",
-        packageSlug: data.packageSlug || null,
-        packageTitle: data.packageTitle || null,
-        travellers: data.travellers ?? null,
-        vehiclePreference: data.vehiclePreference || null,
-      },
-      select: { id: true },
+    const id = newId();
+    const now = new Date().toISOString();
+    const { error } = await db.from("Enquiry").insert({
+      id,
+      name: data.name,
+      phone: data.phone,
+      serviceType: data.serviceType,
+      pickupLocation: data.pickupLocation,
+      dropLocation: data.dropLocation || null,
+      pickupAt: data.pickupAt ? new Date(data.pickupAt).toISOString() : null,
+      message: data.message || null,
+      status: "NEW",
+      sourcePage: data.sourcePage || "home",
+      packageSlug: data.packageSlug || null,
+      packageTitle: data.packageTitle || null,
+      travellers: data.travellers ?? null,
+      vehiclePreference: data.vehiclePreference || null,
+      createdAt: now,
+      updatedAt: now,
     });
-    return NextResponse.json(
-      { ok: true, id: enquiry.id },
-      { headers: rlHeaders },
-    );
+    if (error) throw new Error(error.message);
+    return NextResponse.json({ ok: true, id }, { headers: rlHeaders });
   } catch (err) {
     console.error("Failed to save enquiry:", err);
     // The client still opens WhatsApp, so contact is never blocked.

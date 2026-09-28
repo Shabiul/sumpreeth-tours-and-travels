@@ -1,6 +1,6 @@
 import Link from "next/link";
-import type { Prisma } from "@prisma/client";
-import { prisma } from "@/lib/db";
+import { db } from "@/lib/supabase";
+import type { Enquiry } from "@/lib/types";
 import {
   SERVICE_TYPE_LABELS,
   SERVICE_TYPE_ORDER,
@@ -34,35 +34,28 @@ export default async function EnquiriesPage({
   const sp = await searchParams;
   const page = Math.max(1, Number(sp.page) || 1);
 
-  const where: Prisma.EnquiryWhereInput = {};
+  let query = db.from("Enquiry").select("*", { count: "exact" });
   if (sp.status && ENQUIRY_STATUS_ORDER.includes(sp.status as never)) {
-    where.status = sp.status as never;
+    query = query.eq("status", sp.status);
   }
-  if (
-    sp.serviceType &&
-    SERVICE_TYPE_ORDER.includes(sp.serviceType as never)
-  ) {
-    where.serviceType = sp.serviceType as never;
+  if (sp.serviceType && SERVICE_TYPE_ORDER.includes(sp.serviceType as never)) {
+    query = query.eq("serviceType", sp.serviceType);
   }
   if (sp.q) {
-    // SQLite `contains` is already case-insensitive for ASCII (no `mode` option).
-    where.OR = [
-      { name: { contains: sp.q } },
-      { phone: { contains: sp.q } },
-      { pickupLocation: { contains: sp.q } },
-      { dropLocation: { contains: sp.q } },
-    ];
+    // Strip characters that would break PostgREST's .or() filter-string syntax.
+    const q = sp.q.replace(/[,()]/g, "");
+    query = query.or(
+      `name.ilike.%${q}%,phone.ilike.%${q}%,pickupLocation.ilike.%${q}%,dropLocation.ilike.%${q}%`,
+    );
   }
 
-  const [rows, total] = await Promise.all([
-    prisma.enquiry.findMany({
-      where,
-      orderBy: { createdAt: "desc" },
-      skip: (page - 1) * PAGE_SIZE,
-      take: PAGE_SIZE,
-    }),
-    prisma.enquiry.count({ where }),
-  ]);
+  const from = (page - 1) * PAGE_SIZE;
+  const { data, count, error } = await query
+    .order("createdAt", { ascending: false })
+    .range(from, from + PAGE_SIZE - 1);
+  if (error) throw new Error(error.message);
+  const rows = (data ?? []) as Enquiry[];
+  const total = count ?? 0;
 
   const pageCount = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const qs = new URLSearchParams();

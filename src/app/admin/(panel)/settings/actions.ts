@@ -2,7 +2,7 @@
 
 import { headers } from "next/headers";
 import { z } from "zod";
-import { prisma } from "@/lib/db";
+import { db } from "@/lib/supabase";
 import { requireAdmin } from "@/lib/session";
 import { verifyAdminPassword, setAdminPassword } from "@/lib/auth";
 import { passwordChangeSchema } from "@/lib/validation";
@@ -60,20 +60,14 @@ export async function changePasswordAction(
 }
 
 export async function currentPasswordSource(): Promise<"database" | "environment" | "none"> {
-  const s = await prisma.siteSettings.findUnique({
-    where: { id: "singleton" },
-    select: { adminPasswordHash: true },
-  });
+  const { data: s } = await db.from("SiteSettings").select("adminPasswordHash").eq("id", "singleton").maybeSingle();
   if (s?.adminPasswordHash) return "database";
   if (process.env.ADMIN_PASSWORD_HASH) return "environment";
   return "none";
 }
 
 export async function getCurrentAdminId(): Promise<string> {
-  const s = await prisma.siteSettings.findUnique({
-    where: { id: "singleton" },
-    select: { adminId: true },
-  });
+  const { data: s } = await db.from("SiteSettings").select("adminId").eq("id", "singleton").maybeSingle();
   return s?.adminId || "admin";
 }
 
@@ -99,10 +93,10 @@ export async function changeAdminIdAction(
   }
 
   await seedSettingsIfMissing();
-  await prisma.siteSettings.update({
-    where: { id: "singleton" },
-    data: { adminId: parsed.data },
-  });
+  await db
+    .from("SiteSettings")
+    .update({ adminId: parsed.data, updatedAt: new Date().toISOString() })
+    .eq("id", "singleton");
 
   return { ok: true, message: `Login ID updated to "${parsed.data}".` };
 }

@@ -1,16 +1,15 @@
 import "server-only";
 import bcrypt from "bcryptjs";
-import { prisma } from "./db";
+import { db, unwrap } from "./supabase";
 
 /**
  * Resolve the active admin password hash.
  * Priority: SiteSettings.adminPasswordHash (set via the Settings screen) → env.
  */
 async function getAdminHash(): Promise<string | null> {
-  const settings = await prisma.siteSettings.findUnique({
-    where: { id: "singleton" },
-    select: { adminPasswordHash: true },
-  });
+  const settings = unwrap<{ adminPasswordHash: string | null } | null>(
+    await db.from("SiteSettings").select("adminPasswordHash").eq("id", "singleton").maybeSingle(),
+  );
   if (settings?.adminPasswordHash) return settings.adminPasswordHash;
   return process.env.ADMIN_PASSWORD_HASH ?? null;
 }
@@ -32,10 +31,9 @@ export async function verifyAdminPassword(password: string): Promise<boolean> {
 /** The configured admin login ID (defaults to "admin"). */
 export async function getAdminId(): Promise<string> {
   try {
-    const s = await prisma.siteSettings.findUnique({
-      where: { id: "singleton" },
-      select: { adminId: true },
-    });
+    const s = unwrap<{ adminId: string } | null>(
+      await db.from("SiteSettings").select("adminId").eq("id", "singleton").maybeSingle(),
+    );
     return (s?.adminId || process.env.ADMIN_ID || "admin").trim();
   } catch {
     return process.env.ADMIN_ID || "admin";
@@ -56,8 +54,6 @@ export async function verifyAdminCredentials(
 
 export async function setAdminPassword(newPassword: string): Promise<void> {
   const hash = await bcrypt.hash(newPassword, 10);
-  await prisma.siteSettings.update({
-    where: { id: "singleton" },
-    data: { adminPasswordHash: hash },
-  });
+  const { error } = await db.from("SiteSettings").update({ adminPasswordHash: hash }).eq("id", "singleton");
+  if (error) throw new Error(error.message);
 }

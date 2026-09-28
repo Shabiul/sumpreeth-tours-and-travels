@@ -2,7 +2,8 @@
 
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { prisma } from "@/lib/db";
+import { db, unwrap } from "@/lib/supabase";
+import { newId } from "@/lib/id";
 import { requireAdmin } from "@/lib/session";
 import { faqSchema } from "@/lib/validation";
 import { formObject } from "@/lib/form";
@@ -24,10 +25,16 @@ export async function saveFaqAction(
     };
   }
   const data = parsed.data;
+  const now = new Date().toISOString();
 
   try {
-    if (id) await prisma.faqItem.update({ where: { id }, data });
-    else await prisma.faqItem.create({ data });
+    if (id) {
+      const { error } = await db.from("FaqItem").update({ ...data, updatedAt: now }).eq("id", id);
+      if (error) throw error;
+    } else {
+      const { error } = await db.from("FaqItem").insert({ id: newId(), ...data, createdAt: now, updatedAt: now });
+      if (error) throw error;
+    }
   } catch {
     return { error: "Could not save the FAQ." };
   }
@@ -42,7 +49,7 @@ export async function deleteFaqAction(formData: FormData): Promise<void> {
   await requireAdmin();
   const id = String(formData.get("id") ?? "");
   if (!id) return;
-  await prisma.faqItem.delete({ where: { id } });
+  await db.from("FaqItem").delete().eq("id", id);
   revalidatePublic(TAGS.faqs);
   revalidatePath("/contact");
   revalidatePath("/admin/faqs");
@@ -53,15 +60,14 @@ export async function toggleFaqAction(formData: FormData): Promise<void> {
   await requireAdmin();
   const id = String(formData.get("id") ?? "");
   if (!id) return;
-  const current = await prisma.faqItem.findUnique({
-    where: { id },
-    select: { isActive: true },
-  });
+  const current = unwrap<{ isActive: boolean } | null>(
+    await db.from("FaqItem").select("isActive").eq("id", id).maybeSingle(),
+  );
   if (!current) return;
-  await prisma.faqItem.update({
-    where: { id },
-    data: { isActive: !current.isActive },
-  });
+  await db
+    .from("FaqItem")
+    .update({ isActive: !current.isActive, updatedAt: new Date().toISOString() })
+    .eq("id", id);
   revalidatePublic(TAGS.faqs);
   revalidatePath("/contact");
   revalidatePath("/admin/faqs");

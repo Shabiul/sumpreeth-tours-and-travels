@@ -2,7 +2,7 @@
 
 import { useActionState } from "react";
 import Link from "next/link";
-import type { Destination } from "@prisma/client";
+import type { Destination } from "@/lib/types";
 import { saveDestinationAction } from "./actions";
 import {
   DESTINATION_CATEGORY_LABELS,

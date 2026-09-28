@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { prisma } from "@/lib/db";
+import { db, unwrap } from "@/lib/supabase";
+import type { Destination } from "@/lib/types";
 import {
   DESTINATION_CATEGORY_LABELS,
   type DestinationCategory,
@@ -10,9 +11,13 @@ import { toggleDestinationAction } from "./actions";
 export const dynamic = "force-dynamic";
 
 export default async function DestinationsAdminPage() {
-  const destinations = await prisma.destination.findMany({
-    orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
-  });
+  const destinations = unwrap<Destination[]>(
+    await db
+      .from("Destination")
+      .select("*")
+      .order("sortOrder", { ascending: true })
+      .order("name", { ascending: true }),
+  );
 
   return (
     <>

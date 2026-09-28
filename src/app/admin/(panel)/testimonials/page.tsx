@@ -1,15 +1,20 @@
 import Link from "next/link";
 import { Star } from "lucide-react";
-import { prisma } from "@/lib/db";
+import { db, unwrap } from "@/lib/supabase";
+import type { Testimonial } from "@/lib/types";
 import { PageTitle, Panel, EmptyState, LinkButton } from "@/components/admin/ui";
 import { toggleTestimonialAction } from "./actions";
 
 export const dynamic = "force-dynamic";
 
 export default async function TestimonialsAdminPage() {
-  const items = await prisma.testimonial.findMany({
-    orderBy: [{ sortOrder: "asc" }, { createdAt: "desc" }],
-  });
+  const items = unwrap<Testimonial[]>(
+    await db
+      .from("Testimonial")
+      .select("*")
+      .order("sortOrder", { ascending: true })
+      .order("createdAt", { ascending: false }),
+  );
 
   return (
     <>

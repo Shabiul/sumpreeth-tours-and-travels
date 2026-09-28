@@ -2,7 +2,8 @@
 
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { prisma } from "@/lib/db";
+import { db, unwrap } from "@/lib/supabase";
+import { newId } from "@/lib/id";
 import { requireAdmin } from "@/lib/session";
 import { vehicleSchema, parseFeatures, slugify } from "@/lib/validation";
 import { encodeFeatures } from "@/lib/features";
@@ -33,22 +34,20 @@ export async function saveVehicleAction(
   // shared URL. Only a brand-new vehicle gets a fresh slug.
   let slug: string;
   if (id) {
-    const existing = await prisma.vehicle.findUnique({
-      where: { id },
-      select: { slug: true },
-    });
+    const { data: existing } = await db.from("Vehicle").select("slug").eq("id", id).maybeSingle();
     if (!existing) return { error: "Vehicle not found." };
-    slug = existing.slug;
+    slug = existing.slug as string;
   } else {
     const base = slugify(v.name) || "vehicle";
     slug = base;
     for (let i = 2; i < 50; i++) {
-      const clash = await prisma.vehicle.findFirst({ where: { slug }, select: { id: true } });
+      const { data: clash } = await db.from("Vehicle").select("id").eq("slug", slug).maybeSingle();
       if (!clash) break;
       slug = `${base}-${i}`;
     }
   }
 
+  const now = new Date().toISOString();
   const data = {
     name: v.name,
     slug,
@@ -69,13 +68,16 @@ export async function saveVehicleAction(
     localPackageRate: v.localPackageRate,
     localExtraPerKm: v.localExtraPerKm,
     localExtraPerHr: v.localExtraPerHr,
+    updatedAt: now,
   };
 
   try {
     if (id) {
-      await prisma.vehicle.update({ where: { id }, data });
+      const { error } = await db.from("Vehicle").update(data).eq("id", id);
+      if (error) throw error;
     } else {
-      await prisma.vehicle.create({ data });
+      const { error } = await db.from("Vehicle").insert({ id: newId(), ...data, createdAt: now });
+      if (error) throw error;
     }
   } catch {
     return { error: "Could not save the vehicle." };
@@ -90,7 +92,7 @@ export async function deleteVehicleAction(formData: FormData): Promise<void> {
   await requireAdmin();
   const id = String(formData.get("id") ?? "");
   if (!id) return;
-  await prisma.vehicle.delete({ where: { id } });
+  await db.from("Vehicle").delete().eq("id", id);
   revalidatePublic(TAGS.vehicles);
   revalidatePath("/admin/fleet");
   redirect("/admin/fleet");
@@ -100,15 +102,14 @@ export async function toggleVehicleAction(formData: FormData): Promise<void> {
   await requireAdmin();
   const id = String(formData.get("id") ?? "");
   if (!id) return;
-  const current = await prisma.vehicle.findUnique({
-    where: { id },
-    select: { isActive: true },
-  });
+  const current = unwrap<{ isActive: boolean } | null>(
+    await db.from("Vehicle").select("isActive").eq("id", id).maybeSingle(),
+  );
   if (!current) return;
-  await prisma.vehicle.update({
-    where: { id },
-    data: { isActive: !current.isActive },
-  });
+  await db
+    .from("Vehicle")
+    .update({ isActive: !current.isActive, updatedAt: new Date().toISOString() })
+    .eq("id", id);
   revalidatePublic(TAGS.vehicles);
   revalidatePath("/admin/fleet");
 }

@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
-import { prisma } from "@/lib/db";
+import { db } from "@/lib/supabase";
+import type { Testimonial } from "@/lib/types";
 import { PageTitle, Panel } from "@/components/admin/ui";
 import { deleteTestimonialAction } from "../actions";
 import TestimonialForm from "../TestimonialForm";
@@ -12,8 +13,9 @@ export default async function EditTestimonialPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const item = await prisma.testimonial.findUnique({ where: { id } });
-  if (!item) notFound();
+  const { data } = await db.from("Testimonial").select("*").eq("id", id).maybeSingle();
+  if (!data) notFound();
+  const item = data as Testimonial;
 
   return (
     <>

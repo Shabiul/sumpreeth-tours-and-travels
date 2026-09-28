@@ -5,7 +5,7 @@
   "description": "Sumpreeth Tours and Travels - Bangalore cab & outstation travel website with admin portal",
   "scripts": {
     "dev": "next dev",
-    "build": "prisma generate && next build",
+    "build": "next build",
     "db:deploy": "prisma db push --skip-generate",
     "start": "next start",
     "lint": "next lint",
@@ -21,7 +21,6 @@
     "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
-    "@prisma/client": "^6.2.1",
     "@supabase/supabase-js": "^2.117.2",
     "bcryptjs": "^2.4.3",
     "clsx": "^2.1.1",
@@ -41,6 +40,7 @@
     "autoprefixer": "^10.4.20",
     "eslint": "^9.18.0",
     "eslint-config-next": "^15.1.4",
+    "@prisma/client": "^6.2.1",
     "postcss": "^8.4.49",
     "prisma": "^6.2.1",
     "tailwindcss": "^3.4.17",

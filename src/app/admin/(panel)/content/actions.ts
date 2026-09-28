@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { revalidateTag } from "next/cache";
-import { prisma } from "@/lib/db";
+import { db } from "@/lib/supabase";
 import { requireAdmin } from "@/lib/session";
 import { siteSettingsSchema } from "@/lib/validation";
 import { formObject } from "@/lib/form";
@@ -25,22 +25,15 @@ export async function saveContentAction(
   const d = parsed.data;
 
   try {
-    await prisma.siteSettings.upsert({
-      where: { id: "singleton" },
-      update: {
-        ...d,
-        facebookUrl: d.facebookUrl || null,
-        instagramUrl: d.instagramUrl || null,
-        youtubeUrl: d.youtubeUrl || null,
-      },
-      create: {
-        id: "singleton",
-        ...d,
-        facebookUrl: d.facebookUrl || null,
-        instagramUrl: d.instagramUrl || null,
-        youtubeUrl: d.youtubeUrl || null,
-      },
+    const { error } = await db.from("SiteSettings").upsert({
+      id: "singleton",
+      ...d,
+      facebookUrl: d.facebookUrl || null,
+      instagramUrl: d.instagramUrl || null,
+      youtubeUrl: d.youtubeUrl || null,
+      updatedAt: new Date().toISOString(),
     });
+    if (error) throw error;
   } catch {
     return { error: "Could not save site content." };
   }

@@ -2,7 +2,7 @@
 
 import { useActionState } from "react";
 import Link from "next/link";
-import type { Vehicle } from "@prisma/client";
+import type { Vehicle } from "@/lib/types";
 import { saveVehicleAction } from "./actions";
 import { VEHICLE_CATEGORY_LABELS } from "@/lib/constants";
 import { decodeFeatures } from "@/lib/features";

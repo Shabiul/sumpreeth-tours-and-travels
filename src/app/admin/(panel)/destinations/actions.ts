@@ -2,7 +2,8 @@
 
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { prisma } from "@/lib/db";
+import { db, unwrap } from "@/lib/supabase";
+import { newId } from "@/lib/id";
 import { requireAdmin } from "@/lib/session";
 import { destinationSchema } from "@/lib/validation";
 import { formObject } from "@/lib/form";
@@ -39,21 +40,19 @@ export async function saveDestinationAction(
     // indexed or shared URL. Only a brand-new destination gets a fresh slug.
     let slug: string;
     if (id) {
-      const existing = await prisma.destination.findUnique({
-        where: { id },
-        select: { slug: true },
-      });
+      const { data: existing } = await db.from("Destination").select("slug").eq("id", id).maybeSingle();
       if (!existing) return { error: "Destination not found." };
-      slug = existing.slug;
+      slug = existing.slug as string;
     } else {
       const base = slugify(d.name) || "destination";
       slug = base;
       let n = 1;
-      while (await prisma.destination.findFirst({ where: { slug }, select: { id: true } })) {
+      while ((await db.from("Destination").select("id").eq("slug", slug).maybeSingle()).data) {
         slug = `${base}-${++n}`;
       }
     }
 
+    const now = new Date().toISOString();
     const data = {
       name: d.name,
       slug,
@@ -68,10 +67,16 @@ export async function saveDestinationAction(
       isActive: d.isActive,
       seoTitle: d.seoTitle || null,
       seoDescription: d.seoDescription || null,
+      updatedAt: now,
     };
 
-    if (id) await prisma.destination.update({ where: { id }, data });
-    else await prisma.destination.create({ data });
+    if (id) {
+      const { error } = await db.from("Destination").update(data).eq("id", id);
+      if (error) throw error;
+    } else {
+      const { error } = await db.from("Destination").insert({ id: newId(), ...data, createdAt: now });
+      if (error) throw error;
+    }
   } catch {
     return { error: "Could not save the destination." };
   }
@@ -86,7 +91,7 @@ export async function deleteDestinationAction(formData: FormData): Promise<void>
   await requireAdmin();
   const id = String(formData.get("id") ?? "");
   if (!id) return;
-  await prisma.destination.delete({ where: { id } });
+  await db.from("Destination").delete().eq("id", id);
   revalidatePublic(TAGS.destinations);
   revalidatePath("/destination");
   revalidatePath("/admin/destinations");
@@ -97,15 +102,14 @@ export async function toggleDestinationAction(formData: FormData): Promise<void>
   await requireAdmin();
   const id = String(formData.get("id") ?? "");
   if (!id) return;
-  const current = await prisma.destination.findUnique({
-    where: { id },
-    select: { isActive: true },
-  });
+  const current = unwrap<{ isActive: boolean } | null>(
+    await db.from("Destination").select("isActive").eq("id", id).maybeSingle(),
+  );
   if (!current) return;
-  await prisma.destination.update({
-    where: { id },
-    data: { isActive: !current.isActive },
-  });
+  await db
+    .from("Destination")
+    .update({ isActive: !current.isActive, updatedAt: new Date().toISOString() })
+    .eq("id", id);
   revalidatePublic(TAGS.destinations);
   revalidatePath("/destination");
   revalidatePath("/admin/destinations");
