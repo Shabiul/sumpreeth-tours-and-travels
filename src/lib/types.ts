@@ -117,14 +117,6 @@ export type SiteSettings = {
   updatedAt: string;
 };
 
-export type AdminOtp = {
-  id: string;
-  codeHash: string;
-  expiresAt: string;
-  attempts: number;
-  createdAt: string;
-};
-
 export type TourPackage = {
   id: string;
   title: string;

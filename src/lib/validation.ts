@@ -221,21 +221,6 @@ export const adminLoginSchema = z.object({
   remember: z.coerce.boolean().default(false),
 });
 
-/** Reset the admin password with a one-time code. */
-export const otpResetSchema = z
-  .object({
-    code: z
-      .string()
-      .trim()
-      .regex(/^\d{6}$/, "Enter the 6-digit code"),
-    newPassword: z.string().min(8, "Use at least 8 characters").max(100),
-    confirmPassword: z.string().min(1),
-  })
-  .refine((d) => d.newPassword === d.confirmPassword, {
-    message: "Passwords do not match",
-    path: ["confirmPassword"],
-  });
-
 export function slugify(s: string): string {
   return s
     .toLowerCase()

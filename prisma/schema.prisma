@@ -167,15 +167,6 @@ model SiteSettings {
   updatedAt DateTime @updatedAt
 }
 
-// One-time password for the admin "forgot password" flow. Single row.
-model AdminOtp {
-  id        String   @id @default("singleton")
-  codeHash  String
-  expiresAt DateTime
-  attempts  Int      @default(0)
-  createdAt DateTime @default(now())
-}
-
 // Tours & Packages — Bangalore-origin South India tour packages. All list-type
 // fields (gallery/itinerary/inclusions/exclusions/vehicleOptions/
 // pickupLocations/tags/faq) are JSON strings, decoded in src/lib/packages.ts,
