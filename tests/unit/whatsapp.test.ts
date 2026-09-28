@@ -33,9 +33,9 @@ describe("buildWhatsAppMessage", () => {
     expect(msg).not.toContain("Phone:");
   });
 
-  it("formats a Date pickupAt", () => {
+  it("formats an ISO string pickupAt", () => {
     const msg = buildWhatsAppMessage({
-      pickupAt: new Date("2026-01-02T09:30:00"),
+      pickupAt: "2026-01-02T09:30:00",
     });
     expect(msg).toMatch(/When: .+/);
   });

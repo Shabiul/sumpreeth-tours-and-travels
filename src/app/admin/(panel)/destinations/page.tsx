@@ -16,7 +16,8 @@ export default async function DestinationsAdminPage() {
       .from("Destination")
       .select("*")
       .order("sortOrder", { ascending: true })
-      .order("name", { ascending: true }),
+      .order("name", { ascending: true })
+      .limit(1000),
   );
 
   return (

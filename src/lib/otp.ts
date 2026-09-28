@@ -40,7 +40,9 @@ export async function verifyOtp(code: string): Promise<VerifyResult> {
 
   const match = await bcrypt.compare(code.trim(), row.codeHash).catch(() => false);
   if (!match) {
-    await db.from("AdminOtp").update({ attempts: row.attempts + 1 }).eq("id", "singleton");
+    // Atomic increment (was Prisma's `attempts: { increment: 1 }`) — a plain
+    // read-then-write here would let concurrent guesses race past MAX_ATTEMPTS.
+    await db.rpc("increment_otp_attempts");
     return { ok: false, reason: "mismatch" };
   }
 

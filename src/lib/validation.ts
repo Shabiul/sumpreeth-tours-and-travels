@@ -244,6 +244,21 @@ export function slugify(s: string): string {
     .replace(/^-+|-+$/g, "");
 }
 
+/**
+ * Sanitizes free-text search input for use inside a PostgREST `.or()`
+ * filter string: strips `,()` (which would break the filter-string syntax
+ * itself), then escapes `\ % _` (SQL LIKE wildcards) so a literal search for
+ * e.g. "50%" matches that exact substring instead of using `%`/`_` as
+ * pattern wildcards.
+ */
+export function sanitizeIlikeSearch(q: string): string {
+  return q
+    .replace(/[,()]/g, "")
+    .replace(/\\/g, "\\\\")
+    .replace(/%/g, "\\%")
+    .replace(/_/g, "\\_");
+}
+
 /** Turn a comma / newline separated string into a clean string array. */
 export function parseFeatures(raw: string): string[] {
   return raw

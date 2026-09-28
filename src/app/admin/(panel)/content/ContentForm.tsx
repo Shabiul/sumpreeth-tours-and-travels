@@ -12,7 +12,11 @@ import {
 } from "@/components/admin/form";
 import { ImageUpload } from "@/components/admin/ImageUpload";
 
-export default function ContentForm({ settings }: { settings: SiteSettings }) {
+export default function ContentForm({
+  settings,
+}: {
+  settings: Omit<SiteSettings, "adminPasswordHash">;
+}) {
   const [state, action] = useActionState(saveContentAction, emptyResult);
   const fe = state.fieldErrors ?? {};
 

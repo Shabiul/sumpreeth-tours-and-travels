@@ -5,19 +5,12 @@ import { revalidatePath } from "next/cache";
 import { db, unwrap } from "@/lib/supabase";
 import { newId } from "@/lib/id";
 import { requireAdmin } from "@/lib/session";
-import { destinationSchema } from "@/lib/validation";
+import { destinationSchema, slugify } from "@/lib/validation";
 import { formObject } from "@/lib/form";
 import { encodeList } from "@/lib/packages";
 import { revalidatePublic } from "@/lib/revalidate";
 import { TAGS } from "@/lib/site";
 import type { ActionResult } from "@/components/admin/form";
-
-function slugify(s: string) {
-  return s
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-}
 
 export async function saveDestinationAction(
   _prev: ActionResult,
@@ -40,14 +33,26 @@ export async function saveDestinationAction(
     // indexed or shared URL. Only a brand-new destination gets a fresh slug.
     let slug: string;
     if (id) {
-      const { data: existing } = await db.from("Destination").select("slug").eq("id", id).maybeSingle();
+      const { data: existing, error: findErr } = await db
+        .from("Destination")
+        .select("slug")
+        .eq("id", id)
+        .maybeSingle();
+      if (findErr) throw findErr;
       if (!existing) return { error: "Destination not found." };
       slug = existing.slug as string;
     } else {
       const base = slugify(d.name) || "destination";
       slug = base;
       let n = 1;
-      while ((await db.from("Destination").select("id").eq("slug", slug).maybeSingle()).data) {
+      for (;;) {
+        const { data: clash, error: clashErr } = await db
+          .from("Destination")
+          .select("id")
+          .eq("slug", slug)
+          .maybeSingle();
+        if (clashErr) throw clashErr;
+        if (!clash) break;
         slug = `${base}-${++n}`;
       }
     }

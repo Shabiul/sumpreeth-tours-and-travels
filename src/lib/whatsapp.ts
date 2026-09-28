@@ -6,14 +6,14 @@ export type EnquiryLike = {
   serviceType?: ServiceType | null;
   pickupLocation?: string | null;
   dropLocation?: string | null;
-  pickupAt?: string | Date | null;
+  pickupAt?: string | null;
   message?: string | null;
 };
 
-function formatPickupAt(value: string | Date | null | undefined): string | null {
+function formatPickupAt(value: string | null | undefined): string | null {
   if (!value) return null;
-  const d = typeof value === "string" ? new Date(value) : value;
-  if (Number.isNaN(d.getTime())) return typeof value === "string" ? value : null;
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return value;
   return new Intl.DateTimeFormat("en-IN", {
     dateStyle: "medium",
     timeStyle: "short",

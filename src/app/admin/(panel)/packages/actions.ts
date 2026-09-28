@@ -41,14 +41,26 @@ export async function savePackageAction(
     // indexed or shared URL. Only a brand-new package gets a fresh slug.
     let slug: string;
     if (id) {
-      const { data: existing } = await db.from("TourPackage").select("slug").eq("id", id).maybeSingle();
+      const { data: existing, error: findErr } = await db
+        .from("TourPackage")
+        .select("slug")
+        .eq("id", id)
+        .maybeSingle();
+      if (findErr) throw findErr;
       if (!existing) return { error: "Package not found." };
       slug = existing.slug as string;
     } else {
       const base = slugify(p.title) || "package";
       slug = base;
       let n = 1;
-      while ((await db.from("TourPackage").select("id").eq("slug", slug).maybeSingle()).data) {
+      for (;;) {
+        const { data: clash, error: clashErr } = await db
+          .from("TourPackage")
+          .select("id")
+          .eq("slug", slug)
+          .maybeSingle();
+        if (clashErr) throw clashErr;
+        if (!clash) break;
         slug = `${base}-${++n}`;
       }
     }
@@ -173,14 +185,22 @@ export async function duplicatePackageAction(formData: FormData): Promise<void> 
   await requireAdmin();
   const id = String(formData.get("id") ?? "");
   if (!id) return;
-  const { data } = await db.from("TourPackage").select("*").eq("id", id).maybeSingle();
+  const { data, error: findErr } = await db.from("TourPackage").select("*").eq("id", id).maybeSingle();
+  if (findErr) throw findErr;
   if (!data) return;
   const src = data as TourPackage;
 
   const base = slugify(`${src.title}-copy`) || "package-copy";
   let slug = base;
   let n = 1;
-  while ((await db.from("TourPackage").select("id").eq("slug", slug).maybeSingle()).data) {
+  for (;;) {
+    const { data: clash, error: clashErr } = await db
+      .from("TourPackage")
+      .select("id")
+      .eq("slug", slug)
+      .maybeSingle();
+    if (clashErr) throw clashErr;
+    if (!clash) break;
     slug = `${base}-${++n}`;
   }
 
@@ -200,7 +220,7 @@ export async function duplicatePackageAction(formData: FormData): Promise<void> 
     createdAt: now,
     updatedAt: now,
   });
-  if (error) return;
+  if (error) throw error;
 
   revalidatePublic(TAGS.packages);
   revalidatePath("/admin/packages");

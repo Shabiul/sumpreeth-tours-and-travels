@@ -16,7 +16,8 @@ export default async function FleetAdminPage() {
       .from("Vehicle")
       .select("*")
       .order("sortOrder", { ascending: true })
-      .order("name", { ascending: true }),
+      .order("name", { ascending: true })
+      .limit(1000),
   );
 
   return (

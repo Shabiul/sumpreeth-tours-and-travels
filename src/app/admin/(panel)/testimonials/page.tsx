@@ -13,7 +13,8 @@ export default async function TestimonialsAdminPage() {
       .from("Testimonial")
       .select("*")
       .order("sortOrder", { ascending: true })
-      .order("createdAt", { ascending: false }),
+      .order("createdAt", { ascending: false })
+      .limit(1000),
   );
 
   return (

@@ -11,6 +11,7 @@ import {
   type EnquiryStatus,
 } from "@/lib/constants";
 import { formatDateTime } from "@/lib/format";
+import { sanitizeIlikeSearch } from "@/lib/validation";
 
 export const dynamic = "force-dynamic";
 
@@ -37,7 +38,7 @@ export async function GET(req: NextRequest) {
     query = query.eq("serviceType", serviceType);
   }
   if (q) {
-    const safeQ = q.replace(/[,()]/g, "");
+    const safeQ = sanitizeIlikeSearch(q);
     query = query.or(
       `name.ilike.%${safeQ}%,phone.ilike.%${safeQ}%,pickupLocation.ilike.%${safeQ}%,dropLocation.ilike.%${safeQ}%`,
     );

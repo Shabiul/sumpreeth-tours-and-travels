@@ -12,7 +12,8 @@ export default async function FaqsAdminPage() {
       .from("FaqItem")
       .select("*")
       .order("sortOrder", { ascending: true })
-      .order("createdAt", { ascending: true }),
+      .order("createdAt", { ascending: true })
+      .limit(1000),
   );
 
   return (

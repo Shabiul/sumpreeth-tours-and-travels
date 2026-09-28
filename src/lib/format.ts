@@ -18,18 +18,18 @@ const DATE_FMT = new Intl.DateTimeFormat("en-IN", {
   timeStyle: "short",
 });
 
-export function formatDateTime(value: Date | string | null | undefined): string {
+export function formatDateTime(value: string | null | undefined): string {
   if (!value) return "—";
-  const d = typeof value === "string" ? new Date(value) : value;
+  const d = new Date(value);
   if (Number.isNaN(d.getTime())) return "—";
   return DATE_FMT.format(d);
 }
 
 const DATE_ONLY_FMT = new Intl.DateTimeFormat("en-IN", { dateStyle: "medium" });
 
-export function formatDate(value: Date | string | null | undefined): string {
+export function formatDate(value: string | null | undefined): string {
   if (!value) return "—";
-  const d = typeof value === "string" ? new Date(value) : value;
+  const d = new Date(value);
   if (Number.isNaN(d.getTime())) return "—";
   return DATE_ONLY_FMT.format(d);
 }

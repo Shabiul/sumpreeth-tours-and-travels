@@ -34,14 +34,24 @@ export async function saveVehicleAction(
   // shared URL. Only a brand-new vehicle gets a fresh slug.
   let slug: string;
   if (id) {
-    const { data: existing } = await db.from("Vehicle").select("slug").eq("id", id).maybeSingle();
+    const { data: existing, error: findErr } = await db
+      .from("Vehicle")
+      .select("slug")
+      .eq("id", id)
+      .maybeSingle();
+    if (findErr) throw findErr;
     if (!existing) return { error: "Vehicle not found." };
     slug = existing.slug as string;
   } else {
     const base = slugify(v.name) || "vehicle";
     slug = base;
     for (let i = 2; i < 50; i++) {
-      const { data: clash } = await db.from("Vehicle").select("id").eq("slug", slug).maybeSingle();
+      const { data: clash, error: clashErr } = await db
+        .from("Vehicle")
+        .select("id")
+        .eq("slug", slug)
+        .maybeSingle();
+      if (clashErr) throw clashErr;
       if (!clash) break;
       slug = `${base}-${i}`;
     }

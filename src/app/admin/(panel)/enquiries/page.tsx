@@ -11,6 +11,7 @@ import {
 } from "@/lib/constants";
 import { Pencil } from "lucide-react";
 import { formatDateTime } from "@/lib/format";
+import { sanitizeIlikeSearch } from "@/lib/validation";
 import { PageTitle, Panel, StatusBadge, EmptyState } from "@/components/admin/ui";
 import DeleteButton from "@/components/admin/DeleteButton";
 import { deleteEnquiryAction } from "./actions";
@@ -42,8 +43,7 @@ export default async function EnquiriesPage({
     query = query.eq("serviceType", sp.serviceType);
   }
   if (sp.q) {
-    // Strip characters that would break PostgREST's .or() filter-string syntax.
-    const q = sp.q.replace(/[,()]/g, "");
+    const q = sanitizeIlikeSearch(sp.q);
     query = query.or(
       `name.ilike.%${q}%,phone.ilike.%${q}%,pickupLocation.ilike.%${q}%,dropLocation.ilike.%${q}%`,
     );
