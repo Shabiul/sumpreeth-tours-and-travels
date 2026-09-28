@@ -5,6 +5,8 @@
  */
 
 export const GA_ID = process.env.NEXT_PUBLIC_GA_ID ?? "";
+/** Google Ads conversion tag (e.g. "AW-11277138143"). Shares the same gtag.js loader as GA4. */
+export const ADS_ID = process.env.NEXT_PUBLIC_ADS_ID ?? "";
 
 declare global {
   interface Window {

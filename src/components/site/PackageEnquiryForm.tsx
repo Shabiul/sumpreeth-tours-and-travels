@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { MessageCircle } from "lucide-react";
 import { contactLink } from "@/lib/whatsapp";
 import { trackEvent } from "@/lib/analytics";
+import { SERVICE_TOWNS } from "@/lib/service-towns";
 
 type Props = {
   packageSlug: string;
@@ -203,6 +204,8 @@ export default function PackageEnquiryForm({
             className="field-input"
             value={pickupLocation}
             onChange={(e) => setPickupLocation(e.target.value)}
+            list="service-towns"
+            autoComplete="off"
             placeholder="e.g. Jayanagar, Bangalore"
           />
         </div>
@@ -219,6 +222,12 @@ export default function PackageEnquiryForm({
           />
         </div>
       </div>
+
+      <datalist id="service-towns">
+        {SERVICE_TOWNS.map((town) => (
+          <option key={town} value={town} />
+        ))}
+      </datalist>
 
       <button type="submit" className="btn-accent btn-shine mt-5 w-full">
         <MessageCircle className="h-4 w-4" />

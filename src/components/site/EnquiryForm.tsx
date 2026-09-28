@@ -8,6 +8,7 @@ import {
 } from "@/lib/constants";
 import { buildWhatsAppMessage, whatsappLink } from "@/lib/whatsapp";
 import { trackEvent } from "@/lib/analytics";
+import { SERVICE_TOWNS } from "@/lib/service-towns";
 
 type Variant = "widget" | "page";
 
@@ -287,7 +288,8 @@ export default function EnquiryForm({
             className="field-input"
             value={pickupLocation}
             onChange={(e) => setPickup(e.target.value)}
-            autoComplete="address-level2"
+            list="service-towns"
+            autoComplete="off"
             required
             aria-required="true"
             aria-invalid={!!err("pickupLocation")}
@@ -306,6 +308,8 @@ export default function EnquiryForm({
               className="field-input"
               value={dropLocation}
               onChange={(e) => setDrop(e.target.value)}
+              list="service-towns"
+              autoComplete="off"
             />
           </div>
         )}
@@ -335,6 +339,12 @@ export default function EnquiryForm({
           />
         </div>
       </div>
+
+      <datalist id="service-towns">
+        {SERVICE_TOWNS.map((town) => (
+          <option key={town} value={town} />
+        ))}
+      </datalist>
 
       {/* Honeypot — hidden from real users */}
       <div aria-hidden className="absolute left-[-9999px] top-[-9999px]">
