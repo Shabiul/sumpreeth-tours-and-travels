@@ -11,11 +11,22 @@ import Section from "@/components/site/Section";
 export const revalidate = 600;
 
 export const metadata = pageMeta({
-  title: "Fleet & Rates",
+  title: "Cab Fleet & Outstation Taxi Rates — Bangalore Car Rental",
   description:
-    "Sedans, SUVs, tempo travellers and buses for hire in Bangalore. Compare one-way, round trip, airport and local rates for the Etios, Dzire, Innova, Innova Crysta and more.",
+    "Sedans, SUVs, tempo travellers and buses for hire in Bangalore. Compare one-way, round trip, airport & local rental rates for Toyota Etios, Swift Dzire, Innova Crysta & Force Tempo Traveller.",
   path: "/fleet",
   image: "/images/fleet/IMG-20260901-WA0058.jpg",
+  keywords: [
+    "Tempo traveller rental Bangalore",
+    "Innova Crysta rental Bangalore",
+    "Bangalore cab rates per km",
+    "Sedan taxi Bangalore",
+    "SUV rental Bangalore",
+    "12 seater tempo traveller Bangalore",
+    "16 seater tempo traveller Bangalore",
+    "Etios cab Bangalore",
+    "Outstation taxi rates Bangalore",
+  ].join(", "),
 });
 
 export default async function FleetPage() {

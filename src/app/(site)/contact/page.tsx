@@ -11,11 +11,19 @@ import Section from "@/components/site/Section";
 import MapEmbed from "@/components/site/MapEmbed";
 
 export const metadata = pageMeta({
-  title: "Contact & Booking",
+  title: "Cab Booking & 24/7 Contact — Call +91 94486 48898",
   description:
-    "Book a cab with Sumpreeth Tours and Travels — call +91 94486 48898, message us on WhatsApp, or send an enquiry. Open 24/7, based in Bengaluru 560078.",
+    "Book a cab with Sumpreeth Tours and Travels — call +91 94486 48898, message us on WhatsApp, or send an enquiry. 24/7 instant booking for one-way, airport & outstation cabs, based in Bengaluru 560078.",
   path: "/contact",
   image: "/images/destinations/hero-bangalore.webp",
+  keywords: [
+    "Cab booking in Bangalore",
+    "Taxi booking in Bangalore",
+    "Bangalore taxi contact number",
+    "Airport cab booking Bangalore",
+    "Outstation cab booking",
+    "One way drop taxi booking",
+  ].join(", "),
 });
 
 export default async function ContactPage({

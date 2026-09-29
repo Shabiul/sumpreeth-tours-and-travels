@@ -42,3 +42,5 @@ next-env.d.ts
 .next-dev.log
 
 .vercel
+
+.vscode/

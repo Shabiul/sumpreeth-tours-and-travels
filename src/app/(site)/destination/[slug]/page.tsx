@@ -48,17 +48,27 @@ export async function generateMetadata({
   if (!dest) return { title: "Destination not found", robots: { index: false } };
 
   return pageMeta({
-    title: dest.seoTitle || `Bangalore to ${dest.name} Cab — One Way & Round Trip`,
+    title:
+      dest.seoTitle ||
+      `Bangalore to ${dest.name} Cab & Taxi Service — One Way & Round Trip`,
     description:
       dest.seoDescription ||
-      `Book a one-way or round-trip cab from Bangalore to ${dest.name}. ${dest.description}`,
+      `Book Bangalore to ${dest.name} cab — one-way drop taxis & round trips from ₹12/km. Clean sedans, SUVs & tempo travellers with verified drivers. 24/7 booking. ${dest.description}`,
     path: `/destination/${dest.slug}`,
     image: dest.imageUrl,
     keywords: [
       `Bangalore to ${dest.name} cab`,
-      `${dest.name} one way taxi`,
-      `${dest.name} outstation cab`,
-      `one way sedan Bangalore to ${dest.name}`,
+      `Bangalore to ${dest.name} taxi`,
+      `${dest.name} to Bangalore cabs`,
+      `${dest.name} to Bangalore taxi`,
+      `${dest.name} taxi service`,
+      `${dest.name} cab service`,
+      `cab booking in ${dest.name}`,
+      `one way cab Bangalore to ${dest.name}`,
+      `outstation cab to ${dest.name}`,
+      `Bangalore airport to ${dest.name} taxi`,
+      `tempo traveller Bangalore to ${dest.name}`,
+      `sedan Bangalore to ${dest.name}`,
       `SUV Bangalore to ${dest.name}`,
     ].join(", "),
   });

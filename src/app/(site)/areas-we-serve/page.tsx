@@ -14,9 +14,26 @@ import CtaBanner from "@/components/site/CtaBanner";
 export const revalidate = 3600;
 
 export const metadata = pageMeta({
-  title: "Areas We Serve — One-Way Taxi Across Karnataka & South India",
-  description: `One-way, round-trip and local taxi coverage across all 31 Karnataka districts (${KARNATAKA_TOWN_COUNT}+ towns) plus ${INTERSTATE_TOWN_COUNT}+ towns across Tamil Nadu, Kerala, Andhra Pradesh and Telangana.`,
+  title: "Areas We Serve — One-Way Cabs & Taxi Service Across Karnataka",
+  description: `One-way drop cabs, round-trip taxis & outstation rentals covering all 31 Karnataka districts (${KARNATAKA_TOWN_COUNT}+ towns) plus ${INTERSTATE_TOWN_COUNT}+ towns across Tamil Nadu, Kerala, Andhra Pradesh & Telangana.`,
   path: "/areas-we-serve",
+  keywords: [
+    "Karnataka taxi service",
+    "One way cab Karnataka",
+    "Bangalore to outstation taxi",
+    "Channapatna taxi service",
+    "Mandya taxi service",
+    "Mysore taxi service",
+    "Coorg taxi service",
+    "Mangalore taxi service",
+    "Udupi cab service",
+    "Hubli taxi service",
+    "Belgaum taxi service",
+    "Davanagere taxi service",
+    "Shivamogga taxi service",
+    "Chikmagalur taxi service",
+    "Hassan taxi service",
+  ].join(", "),
 });
 
 export default async function AreasWeServePage() {

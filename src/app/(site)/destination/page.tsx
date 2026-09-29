@@ -11,11 +11,22 @@ import Section from "@/components/site/Section";
 export const revalidate = 600;
 
 export const metadata = pageMeta({
-  title: "One Way & Outstation Cabs from Bangalore",
+  title: "Outstation Cabs & One Way Taxi from Bangalore — 60+ Routes",
   description:
-    "Book a one-way cab, round-trip taxi or local cab from Bangalore to Coorg, Hampi, Mysore, Gokarna, Ooty, Munnar, Tirupati and 50+ destinations across Karnataka & South India.",
+    "Book one-way drop cabs, round-trip outstation taxis & tempo travellers from Bangalore to Mysore, Coorg, Ooty, Chikmagalur, Gokarna, Tirupati and 60+ destinations across Karnataka & South India. Transparent per-km rates.",
   path: "/destination",
   image: "/images/destinations/hero-bangalore.webp",
+  keywords: [
+    "Bangalore outstation cabs",
+    "One way cab Bangalore",
+    "Bangalore taxi service",
+    "Cab booking in Bangalore",
+    "Bangalore to Mysore cabs",
+    "Bangalore to Coorg taxi",
+    "Bangalore to Ooty taxi",
+    "Bangalore to Chikmagalur taxi",
+    "Outstation taxi Karnataka",
+  ].join(", "),
 });
 
 export default async function DestinationPage() {

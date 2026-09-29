@@ -17,13 +17,15 @@ import { vehicleGuide } from "@/lib/vehicle-content";
 import { contactLink, telLink } from "@/lib/whatsapp";
 import { pageMeta } from "@/lib/seo";
 import { rupees } from "@/lib/format";
-import { vehicleJsonLd } from "@/lib/structured-data";
+import { vehicleJsonLd, faqJsonLd } from "@/lib/structured-data";
 import VehicleImages from "@/components/site/VehicleImages";
 import VehicleCard from "@/components/site/VehicleCard";
 import RateCard from "@/components/site/RateCard";
 import CtaBanner from "@/components/site/CtaBanner";
 import Section from "@/components/site/Section";
+import SectionHeading from "@/components/site/SectionHeading";
 import Breadcrumbs from "@/components/site/Breadcrumbs";
+import FaqAccordion from "@/components/site/FaqAccordion";
 
 export const revalidate = 300;
 
@@ -84,12 +86,33 @@ export default async function VehicleDetailPage({
     `Welcome to Sumpreeth Tours and Travels. I'd like to book the ${vehicle.name} (${vehicle.seats} seater) — please share availability and a quote.`,
   );
 
+  const vehicleFaqs = [
+    {
+      question: `How many passengers and bags can fit in the ${vehicle.name}?`,
+      answer: `The ${vehicle.name} comfortably seats ${vehicle.seats} passengers with luggage capacity for ${vehicle.features.find((f) => f.toLowerCase().includes("bag")) ?? "standard luggage"}. It is equipped with AC, comfortable push-back seats, and GPS tracking.`,
+    },
+    {
+      question: `What are the rental rates for the ${vehicle.name}?`,
+      answer: `${vehicle.oneWayRate ? `One-way starting fare is ₹${vehicle.oneWayRate}. ` : ""}${vehicle.roundTripPerKm ? `Outstation round trips are billed at ₹${vehicle.roundTripPerKm}/km with a standard minimum of ${vehicle.minKmPerDay ?? 300} km/day and ₹${vehicle.driverBata ?? 400} driver bata. ` : ""}${vehicle.localPackageRate ? `Local 8h/80km package is ₹${vehicle.localPackageRate}. ` : ""}Tolls and interstate entry taxes are billed at actuals.`,
+    },
+    {
+      question: `Is the ${vehicle.name} available for Bangalore Airport pickup and drop?`,
+      answer: `Yes, the ${vehicle.name} can be booked 24/7 for Kempegowda International Airport (BLR) transfers with flight delay tracking and no midnight surge pricing.`,
+    },
+  ];
+
   return (
     <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
           __html: JSON.stringify(vehicleJsonLd(vehicle, guide.tagline)),
+        }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(faqJsonLd(vehicleFaqs)),
         }}
       />
       <section className="container-page pb-8 pt-28">
@@ -259,6 +282,27 @@ export default async function VehicleDetailPage({
           </div>
         </Section>
       )}
+
+      {/* Vehicle FAQs for Rich Snippets & Answer Engines */}
+      <Section bleed="surface" className="max-w-4xl">
+        <div className="reveal">
+          <SectionHeading
+            center
+            eyebrow="FAQ"
+            title={`Frequently Asked Questions — ${vehicle.name}`}
+            intro="Common questions about seating capacity, rates, luggage space, and trip booking."
+          />
+        </div>
+        <div className="reveal mt-8">
+          <FaqAccordion
+            items={vehicleFaqs.map((f, i) => ({
+              id: `${vehicle.id}-faq-${i}`,
+              question: f.question,
+              answer: f.answer,
+            }))}
+          />
+        </div>
+      </Section>
 
       <CtaBanner
         text={settings.ctaBannerText}

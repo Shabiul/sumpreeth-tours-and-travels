@@ -9,11 +9,17 @@ import Section from "@/components/site/Section";
 export const revalidate = 3600;
 
 export const metadata = pageMeta({
-  title: "Fleet Photo Gallery",
+  title: "Cab Fleet & Vehicle Photos — Bangalore Taxi Gallery",
   description:
     "Photos of the Sumpreeth Tours and Travels fleet — sedans, SUVs, tempo travellers and coaches used for airport, local and outstation trips across Karnataka.",
   path: "/gallery",
   image: "/images/fleet/IMG-20260901-WA0056.jpg",
+  keywords: [
+    "Bangalore cab photos",
+    "Tempo traveller photos Bangalore",
+    "Sumpreeth tours fleet photos",
+    "Innova Crysta cab Bangalore photos",
+  ].join(", "),
 });
 
 export default async function GalleryPage() {

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { MapPin, ArrowRight } from "lucide-react";
+import { MapPin, ArrowRight, Search } from "lucide-react";
 import type { DestinationView as Destination } from "@/lib/site";
 import {
   DESTINATION_CATEGORY_LABELS,
@@ -55,13 +55,22 @@ export default function DestinationView({
   destinations: Destination[];
 }) {
   const [tab, setTab] = useState<"ALL" | DestinationCategory>("ALL");
+  const [search, setSearch] = useState("");
+
+  const query = search.trim().toLowerCase();
+  const matchesSearch = (d: Destination) =>
+    !query ||
+    d.name.toLowerCase().includes(query) ||
+    d.description.toLowerCase().includes(query) ||
+    d.state.toLowerCase().includes(query);
 
   const featured = FEATURED.map((n) =>
     destinations.find((d) => d.name === n),
   ).filter(Boolean) as Destination[];
 
-  const visible =
-    tab === "ALL" ? destinations : destinations.filter((d) => d.category === tab);
+  const visible = (
+    tab === "ALL" ? destinations : destinations.filter((d) => d.category === tab)
+  ).filter(matchesSearch);
 
   const grouped = DESTINATION_CATEGORY_ORDER.map((cat) => ({
     cat,
@@ -72,8 +81,28 @@ export default function DestinationView({
 
   return (
     <div>
-      {/* Featured image cards */}
-      {tab === "ALL" && featured.length > 0 && (
+      {/* Search & filters */}
+      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="relative w-full max-w-md">
+          <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
+          <input
+            type="search"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search 60+ destinations (e.g. Mysore, Coorg, Ooty)..."
+            className="input w-full pl-10 pr-4 text-sm"
+            aria-label="Search destinations"
+          />
+        </div>
+        {search && (
+          <p className="text-xs text-muted">
+            Found {visible.length} route{visible.length === 1 ? "" : "s"}
+          </p>
+        )}
+      </div>
+
+      {/* Featured image cards (shown on initial unfiltered view) */}
+      {!search && tab === "ALL" && featured.length > 0 && (
         <div className="mb-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {featured.map((d) => (
             <Link

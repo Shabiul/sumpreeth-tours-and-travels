@@ -27,6 +27,16 @@ export function businessJsonLd(settings: SiteSettingsData) {
     addressCountry: BUSINESS.country,
   };
 
+  const majorCitiesServed = [
+    "Bengaluru", "Mysuru", "Mandya", "Channapatna", "Ramanagara", "Hassan",
+    "Sakleshpur", "Chikmagalur", "Madikeri", "Coorg", "Mangaluru", "Udupi",
+    "Gokarna", "Shivamogga", "Tumakuru", "Chitradurga", "Davanagere", "Hubballi",
+    "Dharwad", "Belagavi", "Hospet", "Hampi", "Ballari", "Raichur", "Vijayapura",
+    "Bagalkot", "Chikkaballapur", "Kolar", "Ooty", "Coimbatore", "Chennai",
+    "Hosur", "Krishnagiri", "Pondicherry", "Wayanad", "Munnar", "Kochi",
+    "Tirupati", "Hyderabad", "Vijayawada", "Goa"
+  ];
+
   return {
     "@context": "https://schema.org",
     "@graph": [
@@ -42,10 +52,27 @@ export function businessJsonLd(settings: SiteSettingsData) {
           width: 256,
           height: 256,
         },
-        image: canonical("/logo.png"),
+        image: canonical("/icon.png"),
         telephone: settings.phone,
         email: settings.email,
         address,
+        contactPoint: [
+          {
+            "@type": "ContactPoint",
+            telephone: settings.phone,
+            contactType: "customer service",
+            areaServed: "IN",
+            availableLanguage: ["English", "Kannada", "Hindi", "Telugu", "Tamil"],
+            hoursAvailable: {
+              "@type": "OpeningHoursSpecification",
+              dayOfWeek: [
+                "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"
+              ],
+              opens: "00:00",
+              closes: "23:59"
+            }
+          }
+        ],
         ...(sameAs.length ? { sameAs } : {}),
       },
       {
@@ -55,6 +82,14 @@ export function businessJsonLd(settings: SiteSettingsData) {
         name: SITE_NAME,
         inLanguage: "en-IN",
         publisher: { "@id": `${SITE_URL}/#organization` },
+        potentialAction: {
+          "@type": "SearchAction",
+          target: {
+            "@type": "EntryPoint",
+            urlTemplate: `${SITE_URL}/destination?q={search_term_string}`
+          },
+          "query-input": "required name=search_term_string"
+        }
       },
       {
         "@type": ["TravelAgency", "TaxiService", "LocalBusiness"],
@@ -64,11 +99,12 @@ export function businessJsonLd(settings: SiteSettingsData) {
         parentOrganization: { "@id": `${SITE_URL}/#organization` },
         telephone: settings.phone,
         email: settings.email,
-        image: canonical("/logo.png"),
+        image: canonical("/icon.png"),
         priceRange: BUSINESS.priceRange,
         currenciesAccepted: "INR",
+        paymentAccepted: "Cash, UPI, Credit Card, Debit Card, Net Banking",
         description:
-          "24/7 cab rental and outstation travel service in Bengaluru covering Karnataka and South India — one-way, round trip, airport, local and tour packages.",
+          "24/7 cab rental and outstation travel service in Bengaluru covering Karnataka and South India — one-way drops, round trips, airport transfers, local rentals and tour packages.",
         address,
         geo: {
           "@type": "GeoCoordinates",
@@ -76,10 +112,16 @@ export function businessJsonLd(settings: SiteSettingsData) {
           longitude: BUSINESS.longitude,
         },
         hasMap: GOOGLE_MAPS_URL,
-        areaServed: BUSINESS.areaServed.map((name) => ({
-          "@type": "AdministrativeArea",
-          name,
-        })),
+        areaServed: [
+          ...BUSINESS.areaServed.map((name) => ({
+            "@type": "AdministrativeArea",
+            name,
+          })),
+          ...majorCitiesServed.map((name) => ({
+            "@type": "City",
+            name,
+          })),
+        ],
         openingHoursSpecification: [
           {
             "@type": "OpeningHoursSpecification",
@@ -150,6 +192,18 @@ export function packageJsonLd(pkg: PackageView) {
     ),
     brand: { "@type": "Brand", name: SITE_NAME },
     category: "Tour package",
+    ...(pkg.startingPrice != null && pkg.startingPrice > 0
+      ? {
+          offers: {
+            "@type": "Offer",
+            priceCurrency: "INR",
+            price: String(pkg.startingPrice),
+            availability: "https://schema.org/InStock",
+            url,
+            seller: { "@id": `${SITE_URL}/#business` },
+          },
+        }
+      : {}),
   };
 }
 

@@ -10,11 +10,20 @@ import { contactLink } from "@/lib/whatsapp";
 export const revalidate = 600;
 
 export const metadata = pageMeta({
-  title: "Tours & Packages from Bangalore",
+  title: "South India Tour Packages from Bangalore — Karnataka, Kerala & Tamil Nadu",
   description:
-    "Bangalore-origin tour packages across Karnataka, Kerala, Tamil Nadu, Andhra Pradesh, Goa and Puducherry — weekend getaways, family holidays, honeymoon trips and group tours.",
+    "Curated tour packages from Bangalore to Coorg, Ooty, Mysore, Chikmagalur, Tirupati, Gokarna, Kerala & Tamil Nadu with private cab, verified chauffeur & hotel itineraries.",
   path: "/tours-packages",
   image: "/images/destinations/coorg-getaway.webp",
+  keywords: [
+    "Tour packages from Bangalore",
+    "Coorg tour package from Bangalore",
+    "Ooty tour package from Bangalore",
+    "Mysore tour package from Bangalore",
+    "Karnataka tour packages",
+    "South India tour packages",
+    "Weekend getaway from Bangalore",
+  ].join(", "),
 });
 
 export default async function ToursPackagesPage() {

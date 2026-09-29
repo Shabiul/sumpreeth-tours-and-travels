@@ -50,7 +50,7 @@ export function findSiteSpecificAuthority(name: string) {
 }
 
 export const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+  process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.sumpreethtoursandtravels.com";
 
 export const SITE_NAME = "Sumpreeth Tours and Travels";
 
@@ -131,6 +131,8 @@ export function pageMeta({
   // Top-level `title` stays bare so the root layout template appends the brand;
   // OG/Twitter get the fully-qualified title since no template applies there.
   const fullTitle = `${title} | ${SITE_NAME}`;
+  const absoluteImageUrl = image.startsWith("http") ? image : canonical(image);
+
   return {
     title,
     description: desc,
@@ -138,28 +140,38 @@ export function pageMeta({
     alternates: { canonical: url },
     robots: noindex
       ? { index: false, follow: true }
-      : { index: true, follow: true },
+      : {
+          index: true,
+          follow: true,
+          googleBot: {
+            index: true,
+            follow: true,
+            "max-video-preview": -1,
+            "max-image-preview": "large",
+            "max-snippet": -1,
+          },
+        },
     openGraph: {
       type: "website",
       locale: "en_IN",
       siteName: SITE_NAME,
       url,
       title: fullTitle,
-      description,
+      description: desc,
       images: [
         {
-          url: image,
+          url: absoluteImageUrl,
           width: image === DEFAULT_OG_IMAGE ? 1200 : undefined,
           height: image === DEFAULT_OG_IMAGE ? 630 : undefined,
-          alt: SITE_NAME,
+          alt: `${title} - ${SITE_NAME}`,
         },
       ],
     },
     twitter: {
       card: "summary_large_image",
       title: fullTitle,
-      description,
-      images: [image],
+      description: desc,
+      images: [absoluteImageUrl],
     },
   };
 }

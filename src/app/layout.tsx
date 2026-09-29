@@ -2,7 +2,8 @@ import type { Metadata, Viewport } from "next";
 import { Inter, Sora } from "next/font/google";
 import "./globals.css";
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+const siteUrl =
+  process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.sumpreethtoursandtravels.com";
 
 const bodyFont = Inter({
   subsets: ["latin"],
@@ -32,24 +33,44 @@ export const metadata: Metadata = {
   ...(gscToken ? { verification: { google: gscToken } } : {}),
   title: {
     default:
-      "Sumpreeth Tours and Travels | Bangalore Cabs & Karnataka Outstation Travel",
+      "Sumpreeth Tours and Travels | Bangalore Cabs, Taxi Service & Outstation Travel",
     template: "%s | Sumpreeth Tours and Travels",
   },
   description:
-    "24/7 cab rental in Bangalore for one-way, round trip, airport and local trips, plus tempo travellers and buses for outstation tours across Karnataka and South India.",
+    "24/7 cab & taxi service in Bangalore. Book one-way drop cabs, outstation taxis, airport pickup/drop & tempo travellers across Karnataka & South India. Verified drivers, GPS tracked, transparent fares.",
   keywords: [
-    "Bangalore taxi",
+    "Bangalore Taxi service",
+    "Bangalore Cab Service",
+    "Cab booking in Bangalore",
+    "Taxi booking in Bangalore",
+    "Outstation cabs Bangalore",
+    "One way cab Bangalore",
+    "Bangalore airport taxi",
+    "Tempo traveller rental Bangalore",
+    "Bangalore to Mysore cabs",
+    "Bangalore to Coorg taxi",
+    "Bangalore to Ooty taxi",
+    "Bangalore to Chikmagalur taxi",
     "Karnataka outstation cab",
-    "airport cab Bangalore",
-    "tempo traveller rental Bangalore",
-    "one way cab Karnataka",
-    "Coorg cab package",
+    "One way drop taxi",
   ],
   alternates: { canonical: "/" },
   robots: {
     index: true,
     follow: true,
-    googleBot: { index: true, follow: true, "max-image-preview": "large" },
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+      "max-video-preview": -1,
+    },
+  },
+  other: {
+    "geo.region": "IN-KA",
+    "geo.placename": "Bengaluru",
+    "geo.position": "12.8916;77.5847",
+    "ICBM": "12.8916, 77.5847",
   },
   openGraph: {
     type: "website",
@@ -57,19 +78,24 @@ export const metadata: Metadata = {
     siteName: "Sumpreeth Tours and Travels",
     url: siteUrl,
     title:
-      "Sumpreeth Tours and Travels | Bangalore Cabs & Karnataka Outstation Travel",
+      "Sumpreeth Tours and Travels | Bangalore Cabs, Taxi Service & Outstation Travel",
     description:
-      "24/7 cabs, tempo travellers and buses for airport, local and outstation trips across Karnataka.",
+      "24/7 cabs, tempo travellers and buses for airport, local and outstation trips across Karnataka & South India.",
     images: [
-      { url: "/og.jpg", width: 1200, height: 630, alt: "Sumpreeth Tours and Travels" },
+      {
+        url: "/og.jpg",
+        width: 1200,
+        height: 630,
+        alt: "Sumpreeth Tours and Travels - Bangalore Cabs & Karnataka Outstation Travel",
+      },
     ],
   },
   twitter: {
     card: "summary_large_image",
     title:
-      "Sumpreeth Tours and Travels | Bangalore Cabs & Karnataka Outstation Travel",
+      "Sumpreeth Tours and Travels | Bangalore Cabs, Taxi Service & Outstation Travel",
     description:
-      "24/7 cabs, tempo travellers and buses for airport, local and outstation trips across Karnataka.",
+      "24/7 cabs, tempo travellers and buses for airport, local and outstation trips across Karnataka & South India.",
     images: ["/og.jpg"],
   },
 };

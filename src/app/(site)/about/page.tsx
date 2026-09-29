@@ -20,10 +20,17 @@ export const revalidate = 3600;
 export async function generateMetadata() {
   const settings = await getSiteSettings();
   return pageMeta({
-    title: "About Us",
+    title: "About Us — Trusted Bangalore Cab & Outstation Travel Service",
     description: `Sumpreeth Tours and Travels is a Bangalore-based 24/7 cab and outstation travel service — ${settings.trustYears} years, ${settings.trustTrips} trips, vetted drivers and GPS-tracked vehicles across Karnataka & South India.`,
     path: "/about",
     image: "/images/fleet/IMG-20260901-WA0040.jpg",
+    keywords: [
+      "About Sumpreeth Tours and Travels",
+      "Bangalore cab company",
+      "Outstation travel agency Bangalore",
+      "Best taxi service in Bangalore",
+      "Verified cab drivers Bangalore",
+    ].join(", "),
   });
 }
 
