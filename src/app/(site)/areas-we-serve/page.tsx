@@ -42,14 +42,38 @@ export default async function AreasWeServePage() {
     getDestinations(),
   ]);
   const destSlugs = new Set(destinations.map((d) => d.slug));
-  // A few list entries use a shorter/alternate name than the destination
-  // page's own title (e.g. "KGF" vs "Kolar Gold Fields").
   const TOWN_ALIASES: Record<string, string> = {
     kgf: "kolar-gold-fields",
+    kolar: "kolar-gold-fields",
     gokak: "gokak-falls",
     trichy: "trichy-tiruchirappalli",
     trivandrum: "trivandrum-kovalam",
     alappuzha: "alleppey-kerala-backwaters",
+    alleppey: "alleppey-kerala-backwaters",
+    coorg: "madikeri-coorg",
+    madikeri: "madikeri-coorg",
+    "nandi-hills": "chikkaballapura-nandi-region",
+    chikkaballapur: "chikkaballapura-nandi-region",
+    mysuru: "mysore",
+    hosapete: "hospet-hosapete",
+    hubli: "hubli-dharwad",
+    hubballi: "hubli-dharwad",
+    badami: "bagalkot-badami-aihole-belt",
+    bagalkot: "bagalkot-badami-aihole-belt",
+    belgaum: "belgaum-belagavi",
+    belagavi: "belgaum-belagavi",
+    bijapur: "bijapur-vijayapura",
+    vijayapura: "bijapur-vijayapura",
+    bellary: "ballari-bellary",
+    ballari: "ballari-bellary",
+    kushalnagar: "kushal-nagar",
+    shimoga: "shivamogga",
+    chikkamagaluru: "chikmagalur",
+    mangaluru: "mangalore",
+    tumakuru: "tumkur",
+    gulbarga: "kalaburagi",
+    rameshwaram: "rameshwaram",
+    savandurga: "savandurga-hills",
   };
   const waHref = contactLink(settings.whatsappNumber);
   const allKarnatakaTowns = KARNATAKA_AREAS.flatMap((d) => d.towns);

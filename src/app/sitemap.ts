@@ -87,32 +87,37 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   for (const v of vehicles) {
     if (!v.slug) continue;
+    const vPhotos = vehiclePhotos(v).filter(Boolean).map(absImg).slice(0, 10);
     entries.push({
       url: abs(`/fleet/${v.slug}`),
-      lastModified: v.updatedAt ?? now,
+      lastModified: v.updatedAt ? new Date(v.updatedAt) : now,
       changeFrequency: "weekly",
       priority: 0.85,
-      images: vehiclePhotos(v).map(absImg).slice(0, 10),
+      ...(vPhotos.length > 0 ? { images: vPhotos } : {}),
     });
   }
 
   for (const p of packages) {
+    if (!p.slug) continue;
+    const pPhotos = packagePhotos(p).filter(Boolean).map(absImg).slice(0, 10);
     entries.push({
       url: abs(`/tours-packages/${p.slug}`),
-      lastModified: p.updatedAt ?? now,
+      lastModified: p.updatedAt ? new Date(p.updatedAt) : now,
       changeFrequency: "weekly",
       priority: p.featured ? 0.9 : 0.85,
-      images: packagePhotos(p).map(absImg).slice(0, 10),
+      ...(pPhotos.length > 0 ? { images: pPhotos } : {}),
     });
   }
 
   for (const d of destinations) {
+    if (!d.slug) continue;
+    const dPhotos = d.imageUrl ? [absImg(d.imageUrl)] : [];
     entries.push({
       url: abs(`/destination/${d.slug}`),
-      lastModified: d.updatedAt ?? now,
+      lastModified: d.updatedAt ? new Date(d.updatedAt) : now,
       changeFrequency: "weekly",
       priority: 0.85,
-      images: [absImg(d.imageUrl)],
+      ...(dPhotos.length > 0 ? { images: dPhotos } : {}),
     });
   }
 

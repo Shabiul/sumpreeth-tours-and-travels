@@ -14,12 +14,14 @@ const EXPLORE: [string, string][] = [
 ];
 
 const POPULAR_ROUTES = [
-  "Madikeri / Coorg",
-  "Chikmagalur",
-  "Hampi",
-  "Mysore",
-  "Ooty",
-  "Tirupati",
+  { label: "Coorg (Madikeri)", href: "/destination/madikeri-coorg" },
+  { label: "Chikmagalur", href: "/destination/chikmagalur" },
+  { label: "Hampi", href: "/destination/hampi" },
+  { label: "Mysore", href: "/destination/mysore" },
+  { label: "Ooty", href: "/destination/ooty" },
+  { label: "Tirupati", href: "/destination/tirupati" },
+  { label: "Gokarna", href: "/destination/gokarna" },
+  { label: "Wayanad", href: "/destination/wayanad" },
 ];
 
 export default function Footer({ settings }: { settings: SiteSettingsData }) {
@@ -95,13 +97,13 @@ export default function Footer({ settings }: { settings: SiteSettingsData }) {
             Popular routes
           </h3>
           <ul className="mt-4 space-y-2 text-sm">
-            {POPULAR_ROUTES.map((name) => (
-              <li key={name}>
+            {POPULAR_ROUTES.map((route) => (
+              <li key={route.href}>
                 <Link
-                  href={`/contact?destination=${encodeURIComponent(name)}`}
+                  href={route.href}
                   className="text-forest-200/80 hover:text-white"
                 >
-                  Bangalore → {name}
+                  Bangalore → {route.label}
                 </Link>
               </li>
             ))}
@@ -158,7 +160,7 @@ export default function Footer({ settings }: { settings: SiteSettingsData }) {
             <Link href="/sitemap.xml" className="hover:text-white">
               Sitemap
             </Link>
-            <Link href="/admin" className="hover:text-white">
+            <Link href="/admin/login" rel="nofollow" className="hover:text-white">
               Staff login
             </Link>
           </nav>

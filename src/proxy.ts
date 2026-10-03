@@ -11,6 +11,7 @@ import {
   burstLimit,
   canonicalRedirect,
   isBlockedRequest,
+  isSearchBot,
 } from "@/lib/edge-guard";
 
 const isProd = process.env.NODE_ENV === "production";
@@ -48,7 +49,11 @@ export async function proxy(req: NextRequest) {
   if (redirectTo) return NextResponse.redirect(redirectTo, 308);
 
   // 3. Per-IP burst limiter (single-instance; mirror with the Vercel WAF).
-  const burst = burstLimit(clientIp(req));
+  // Recognized search engine bots (Googlebot, Bingbot) receive a generous ceiling
+  // so rapid multi-asset indexing passes are never throttled with HTTP 429.
+  const ua = req.headers.get("user-agent") ?? "";
+  const isBot = isSearchBot(ua);
+  const burst = burstLimit(clientIp(req), isBot ? 2000 : 120);
   if (!burst.ok) {
     return new NextResponse("Too Many Requests", {
       status: 429,

@@ -66,14 +66,22 @@ export function canonicalRedirect({
   return `https://${targetHost}${pathname}${search}`;
 }
 
-// --- Per-IP burst limiter (in-memory; single instance) -----------------------
+// --- Search engine bot recognition & Per-IP burst limiter -------------------
+
+export const SEARCH_BOT_UA_RE =
+  /(Googlebot|Google-InspectionTool|Google-Extended|Bingbot|Slurp|DuckDuckBot|Baiduspider|YandexBot|Applebot|GPTBot|ChatGPT-User|ClaudeBot|PerplexityBot)/i;
+
+export function isSearchBot(userAgent: string | null): boolean {
+  if (!userAgent) return false;
+  return SEARCH_BOT_UA_RE.test(userAgent);
+}
 
 type Bucket = { count: number; resetAt: number };
 const bursts = new Map<string, Bucket>();
 
 export function burstLimit(
   ip: string,
-  limit = 40,
+  limit = 120,
   windowMs = 10_000,
 ): { ok: boolean; retryAfterSec: number } {
   const now = Date.now();

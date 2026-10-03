@@ -1,7 +1,7 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { Check, MapPin, MessageCircle, Phone, ArrowRight, ExternalLink } from "lucide-react";
+import { Check, MapPin, MessageCircle, Phone, ArrowRight, ExternalLink, Clock, Compass, ShieldCheck, Car, Coffee } from "lucide-react";
 import {
   getDestinations,
   getDestinationBySlug,
@@ -25,6 +25,7 @@ import {
   type PackageState,
 } from "@/lib/constants";
 import { distanceLabel } from "@/lib/format";
+import { getRouteDetails } from "@/lib/destination-content";
 import Breadcrumbs from "@/components/site/Breadcrumbs";
 import Section from "@/components/site/Section";
 import VehicleCard from "@/components/site/VehicleCard";
@@ -32,6 +33,37 @@ import FaqAccordion from "@/components/site/FaqAccordion";
 import CtaBanner from "@/components/site/CtaBanner";
 
 export const revalidate = 600;
+
+const DESTINATION_ALIASES: Record<string, string> = {
+  coorg: "madikeri-coorg",
+  madikeri: "madikeri-coorg",
+  "nandi-hills": "chikkaballapura-nandi-region",
+  mysuru: "mysore",
+  hosapete: "hospet-hosapete",
+  hubli: "hubli-dharwad",
+  hubballi: "hubli-dharwad",
+  badami: "bagalkot-badami-aihole-belt",
+  belgaum: "belgaum-belagavi",
+  belagavi: "belgaum-belagavi",
+  bijapur: "bijapur-vijayapura",
+  vijayapura: "bijapur-vijayapura",
+  bellary: "ballari-bellary",
+  ballari: "ballari-bellary",
+  trichy: "trichy-tiruchirappalli",
+  trivandrum: "trivandrum-kovalam",
+  alappuzha: "alleppey-kerala-backwaters",
+  alleppey: "alleppey-kerala-backwaters",
+  kgf: "kolar-gold-fields",
+  gokak: "gokak-falls",
+  kushalnagar: "kushal-nagar",
+  rameshwaram: "rameswaram",
+  kolar: "kolar-gold-fields",
+  shimoga: "shivamogga",
+  mangaluru: "mangalore",
+  chikkamagaluru: "chikmagalur",
+  tumakuru: "tumkur",
+  gulbarga: "kalaburagi",
+};
 
 export async function generateStaticParams() {
   const destinations = await getDestinations();
@@ -44,7 +76,10 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const dest = await getDestinationBySlug(slug);
+  let dest = await getDestinationBySlug(slug);
+  if (!dest && DESTINATION_ALIASES[slug]) {
+    dest = await getDestinationBySlug(DESTINATION_ALIASES[slug]);
+  }
   if (!dest) return { title: "Destination not found", robots: { index: false } };
 
   return pageMeta({
@@ -80,13 +115,23 @@ export default async function DestinationDetailPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const [dest, allDestinations, vehicles, settings] = await Promise.all([
-    getDestinationBySlug(slug),
+  let dest = await getDestinationBySlug(slug);
+
+  if (!dest) {
+    const alias = DESTINATION_ALIASES[slug];
+    if (alias) {
+      redirect(`/destination/${alias}`);
+    }
+    notFound();
+  }
+
+  const [allDestinations, vehicles, settings] = await Promise.all([
     getDestinations(),
     getVehicles(),
     getSiteSettings(),
   ]);
-  if (!dest) notFound();
+
+  const routeInfo = getRouteDetails(dest);
 
   const linkedPackage = dest.packageSlug
     ? await getPackageBySlug(dest.packageSlug)
@@ -109,23 +154,7 @@ export default async function DestinationDetailPage({
     .filter((d) => d.slug !== dest.slug && d.state === dest.state)
     .slice(0, 6);
 
-  const faq = [
-    {
-      question: `Do you provide one-way cabs from Bangalore to ${dest.name}?`,
-      answer:
-        "Yes — on most routes we offer a fixed one-way fare, so you only pay for the drop and don't get charged for a return trip you're not taking. Round-trip and multi-day rentals are also available.",
-    },
-    {
-      question: "What's included in the fare?",
-      answer:
-        "The driver, fuel and vehicle are included. Tolls, parking, permits and state entry taxes are charged at actuals and shared upfront before you confirm.",
-    },
-    {
-      question: "Can I book a tempo traveller or bigger vehicle for a group?",
-      answer:
-        "Yes — sedans, SUVs, and 12/16-seater tempo travellers are all available for this route. Share your group size on WhatsApp and we'll suggest the right vehicle.",
-    },
-  ];
+  const faq = routeInfo.faqs;
 
   return (
     <>
@@ -211,6 +240,154 @@ export default async function DestinationDetailPage({
 
       <Section className="grid gap-10 lg:grid-cols-[1.4fr_1fr]">
         <div className="space-y-10">
+          {/* Route Overview & Trip Essentials */}
+          <div className="reveal card p-6">
+            <h2 className="text-h3 font-bold text-ink">
+              Bangalore to {dest.name} — Route &amp; Travel Overview
+            </h2>
+            <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="flex items-start gap-3 rounded-xl bg-forest-50/50 p-3.5 dark:bg-white/[0.03]">
+                <Clock className="mt-0.5 h-5 w-5 shrink-0 text-forest-600 dark:text-forest-400" />
+                <div>
+                  <p className="text-xs font-semibold uppercase text-bodytext">Driving Time</p>
+                  <p className="mt-0.5 text-sm font-bold text-ink">{routeInfo.drivingTime}</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3 rounded-xl bg-forest-50/50 p-3.5 dark:bg-white/[0.03]">
+                <Compass className="mt-0.5 h-5 w-5 shrink-0 text-forest-600 dark:text-forest-400" />
+                <div>
+                  <p className="text-xs font-semibold uppercase text-bodytext">Primary Highway</p>
+                  <p className="mt-0.5 text-sm font-bold text-ink line-clamp-1" title={routeInfo.highway}>
+                    {routeInfo.highway}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3 rounded-xl bg-forest-50/50 p-3.5 dark:bg-white/[0.03]">
+                <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-forest-600 dark:text-forest-400" />
+                <div>
+                  <p className="text-xs font-semibold uppercase text-bodytext">Best Departure</p>
+                  <p className="mt-0.5 text-xs font-medium text-ink">{routeInfo.bestDepartureTime}</p>
+                </div>
+              </div>
+            </div>
+            <div className="mt-4 rounded-xl bg-amber-500/10 p-3.5 text-xs text-ink dark:text-amber-200">
+              <strong>Best Season to Visit:</strong> {routeInfo.bestSeason}.
+            </div>
+          </div>
+
+          {/* Route Fare Estimator Table */}
+          <div className="reveal card overflow-hidden p-6">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <h2 className="text-h3 font-bold text-ink">
+                Bangalore to {dest.name} Cab Fares &amp; Rental Rates
+              </h2>
+              <span className="rounded-full bg-forest-50 px-2.5 py-1 text-xs font-semibold text-forest-700 dark:bg-white/[0.05] dark:text-forest-300">
+                Transparent Pricing
+              </span>
+            </div>
+            <p className="mt-2 text-sm text-bodytext">
+              Estimated door-to-door cab rates for one-way drops and outstation round trips. Fuel and driver allowances are included; FASTag tolls and interstate permits at actuals.
+            </p>
+
+            <div className="mt-5 overflow-x-auto">
+              <table className="w-full text-left text-sm">
+                <thead>
+                  <tr className="border-b border-line text-xs font-semibold uppercase text-bodytext">
+                    <th className="pb-3 pr-4">Vehicle Model</th>
+                    <th className="pb-3 pr-4">Seats</th>
+                    <th className="pb-3 pr-4">One-Way Drop (Est.)</th>
+                    <th className="pb-3">Round Trip Rate</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-line text-ink">
+                  <tr>
+                    <td className="py-3.5 pr-4 font-semibold">
+                      <span className="flex items-center gap-1.5">
+                        <Car className="h-4 w-4 text-forest-500" />
+                        Sedan (Etios / Dzire)
+                      </span>
+                    </td>
+                    <td className="py-3.5 pr-4 text-bodytext">4+1</td>
+                    <td className="py-3.5 pr-4 font-bold text-forest-700 dark:text-forest-400">
+                      from ₹{routeInfo.fares.sedanOneWay.toLocaleString("en-IN")}
+                    </td>
+                    <td className="py-3.5 text-bodytext">
+                      ₹12/km (Min 300 km/day + ₹400 bata)
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="py-3.5 pr-4 font-semibold">
+                      <span className="flex items-center gap-1.5">
+                        <Car className="h-4 w-4 text-forest-500" />
+                        SUV (Ertiga / Innova)
+                      </span>
+                    </td>
+                    <td className="py-3.5 pr-4 text-bodytext">6+1 / 7+1</td>
+                    <td className="py-3.5 pr-4 font-bold text-forest-700 dark:text-forest-400">
+                      from ₹{routeInfo.fares.suvOneWay.toLocaleString("en-IN")}
+                    </td>
+                    <td className="py-3.5 text-bodytext">
+                      ₹17/km (Min 300 km/day + ₹400 bata)
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="py-3.5 pr-4 font-semibold">
+                      <span className="flex items-center gap-1.5">
+                        <Car className="h-4 w-4 text-forest-500" />
+                        Innova Crysta (Premium)
+                      </span>
+                    </td>
+                    <td className="py-3.5 pr-4 text-bodytext">7+1</td>
+                    <td className="py-3.5 pr-4 font-bold text-forest-700 dark:text-forest-400">
+                      from ₹{routeInfo.fares.crystaOneWay.toLocaleString("en-IN")}
+                    </td>
+                    <td className="py-3.5 text-bodytext">
+                      ₹18/km (Min 300 km/day + ₹400 bata)
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="py-3.5 pr-4 font-semibold">
+                      <span className="flex items-center gap-1.5">
+                        <Car className="h-4 w-4 text-forest-500" />
+                        Tempo Traveller (Group)
+                      </span>
+                    </td>
+                    <td className="py-3.5 pr-4 text-bodytext">12+1 / 16+1</td>
+                    <td className="py-3.5 pr-4 text-bodytext font-medium">Quote on request</td>
+                    <td className="py-3.5 text-bodytext">
+                      from ₹20/km (Min 300 km/day + ₹500 bata)
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div className="mt-4 rounded-xl bg-forest-50/60 p-3 text-xs text-bodytext dark:bg-white/[0.03]">
+              <span className="font-semibold text-ink">Highway Regulations:</span> {routeInfo.statePermitNote}
+            </div>
+          </div>
+
+          {/* Highway Pit Stops */}
+          {routeInfo.pitStops.length > 0 && (
+            <div className="reveal card p-6">
+              <h2 className="flex items-center gap-2 text-h4 font-bold text-ink">
+                <Coffee className="h-5 w-5 text-saffron-600 dark:text-saffron-400" />
+                Recommended Highway Pit Stops on This Route
+              </h2>
+              <p className="mt-2 text-sm text-bodytext">
+                Clean washrooms, South Indian breakfast, and family-friendly dining spots along {routeInfo.highway}:
+              </p>
+              <ul className="mt-3 grid gap-2 sm:grid-cols-2">
+                {routeInfo.pitStops.map((stop) => (
+                  <li key={stop} className="flex items-center gap-2 text-sm font-medium text-ink">
+                    <Check className="h-4 w-4 shrink-0 text-forest-500" />
+                    {stop}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
           {/* Highlights */}
           {dest.highlights.length > 0 && (
             <div className="reveal">

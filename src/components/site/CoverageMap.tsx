@@ -11,17 +11,17 @@ const VB_H = 150;
  * City markers, projected from real lat/long onto the viewBox
  * (lon 74.0–78.6°E → 0–100, lat 18.6–11.5°N → 0–150). Approximate.
  */
-const PLACES: { name: string; x: number; y: number; hq?: boolean }[] = [
-  { name: "Bidar", x: 75, y: 16 },
-  { name: "Bijapur (Vijayapura)", x: 37, y: 37 },
-  { name: "Hubli–Dharwad", x: 25, y: 68 },
-  { name: "Gokarna", x: 9, y: 84 },
-  { name: "Hampi", x: 53, y: 68 },
-  { name: "Chitradurga", x: 52, y: 90 },
-  { name: "Chikmagalur", x: 39, y: 109 },
-  { name: "Mangalore", x: 21, y: 118 },
-  { name: "Madikeri / Coorg", x: 38, y: 128 },
-  { name: "Mysore", x: 55, y: 130 },
+const PLACES: { name: string; x: number; y: number; hq?: boolean; slug?: string }[] = [
+  { name: "Bidar", x: 75, y: 16, slug: "bidar" },
+  { name: "Bijapur (Vijayapura)", x: 37, y: 37, slug: "bijapur-vijayapura" },
+  { name: "Hubli–Dharwad", x: 25, y: 68, slug: "hubli-dharwad" },
+  { name: "Gokarna", x: 9, y: 84, slug: "gokarna" },
+  { name: "Hampi", x: 53, y: 68, slug: "hampi" },
+  { name: "Chitradurga", x: 52, y: 90, slug: "chitradurga" },
+  { name: "Chikmagalur", x: 39, y: 109, slug: "chikmagalur" },
+  { name: "Mangalore", x: 21, y: 118, slug: "mangalore" },
+  { name: "Madikeri / Coorg", x: 38, y: 128, slug: "madikeri-coorg" },
+  { name: "Mysore", x: 55, y: 130, slug: "mysore" },
   { name: "Bangalore", x: 74, y: 117, hq: true },
 ];
 
@@ -247,12 +247,12 @@ export default function CoverageMap() {
           {PLACES.map((p) => (
             <Link
               key={p.name}
-              href={`/contact?destination=${encodeURIComponent(p.name)}`}
+              href={p.slug ? `/destination/${p.slug}` : "/destination"}
               onMouseEnter={() => setHover(p.name)}
               onMouseLeave={() => setHover(null)}
               onFocus={() => setHover(p.name)}
               onBlur={() => setHover(null)}
-              aria-label={`Plan a trip to ${p.name}`}
+              aria-label={`View cab and outstation guide for ${p.name}`}
               className="group absolute -translate-x-1/2 -translate-y-full"
               style={{ left: `${(p.x / VB_W) * 100}%`, top: `${(p.y / VB_H) * 100}%` }}
             >

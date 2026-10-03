@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { Check, MapPin, MessageCircle, Phone, X as XIcon, ExternalLink, ArrowRight } from "lucide-react";
@@ -30,13 +30,24 @@ export async function generateStaticParams() {
   return packages.map((p) => ({ slug: p.slug }));
 }
 
+function cleanPackageSlug(slug: string): string {
+  return slug
+    .replace(/-tour-package$/, "")
+    .replace(/-day-tour$/, "")
+    .replace(/-package$/, "");
+}
+
 export async function generateMetadata({
   params,
 }: {
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const pkg = await getPackageBySlug(slug);
+  let pkg = await getPackageBySlug(slug);
+  if (!pkg) {
+    const cleaned = cleanPackageSlug(slug);
+    pkg = await getPackageBySlug(cleaned);
+  }
   if (!pkg) return { title: "Package not found", robots: { index: false } };
 
   return pageMeta({
@@ -56,14 +67,23 @@ export default async function PackageDetailPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const [pkg, allPackages, settings, destinations, vehicles] = await Promise.all([
-    getPackageBySlug(slug),
+  let pkg = await getPackageBySlug(slug);
+
+  if (!pkg) {
+    const cleaned = cleanPackageSlug(slug);
+    const fallback = await getPackageBySlug(cleaned);
+    if (fallback) {
+      redirect(`/tours-packages/${fallback.slug}`);
+    }
+    notFound();
+  }
+
+  const [allPackages, settings, destinations, vehicles] = await Promise.all([
     getPackages(),
     getSiteSettings(),
     getDestinations(),
     getVehicles(),
   ]);
-  if (!pkg) notFound();
 
   const wa = contactLink(
     settings.whatsappNumber,

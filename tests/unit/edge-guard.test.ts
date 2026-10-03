@@ -4,7 +4,37 @@ import {
   isBlockedRequest,
   isLocalOrPreviewHost,
   burstLimit,
+  isSearchBot,
 } from "@/lib/edge-guard";
+
+describe("isSearchBot", () => {
+  it("identifies major search engine crawlers", () => {
+    expect(
+      isSearchBot(
+        "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)",
+      ),
+    ).toBe(true);
+    expect(
+      isSearchBot(
+        "Mozilla/5.0 (Linux; Android 6.0.1; Nexus 5X Build/MMB29P) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/W.X.Y.Z Mobile Safari/537.36 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)",
+      ),
+    ).toBe(true);
+    expect(isSearchBot("Mozilla/5.0 (compatible; bingbot/2.0; +http://www.bing.com/bingbot.htm)")).toBe(true);
+    expect(isSearchBot("DuckDuckBot/1.0; (+http://duckduckgo.com/duckduckbot.html)")).toBe(true);
+    expect(isSearchBot("Applebot/0.1")).toBe(true);
+    expect(isSearchBot("YandexBot/3.0")).toBe(true);
+  });
+
+  it("returns false for regular user browsers and null", () => {
+    expect(
+      isSearchBot(
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+      ),
+    ).toBe(false);
+    expect(isSearchBot(null)).toBe(false);
+    expect(isSearchBot("")).toBe(false);
+  });
+});
 
 describe("isBlockedRequest", () => {
   it("blocks scanner paths", () => {
