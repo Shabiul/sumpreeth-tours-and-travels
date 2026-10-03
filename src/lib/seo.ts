@@ -49,8 +49,20 @@ export function findSiteSpecificAuthority(name: string) {
   return SITE_SPECIFIC_AUTHORITY.find((s) => lower.includes(s.match));
 }
 
-export const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.sumpreethtoursandtravels.com";
+export const CANONICAL_SITE_URL = "https://www.sumpreethtoursandtravels.com";
+
+export const SITE_URL = (() => {
+  const envUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim();
+  if (
+    process.env.NODE_ENV === "production" ||
+    !envUrl ||
+    envUrl.includes("localhost") ||
+    envUrl.includes("127.0.0.1")
+  ) {
+    return CANONICAL_SITE_URL;
+  }
+  return envUrl.replace(/\/+$/, "");
+})();
 
 export const SITE_NAME = "Sumpreeth Tours and Travels";
 

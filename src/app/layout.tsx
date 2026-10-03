@@ -1,9 +1,9 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, Sora } from "next/font/google";
+import { SITE_URL } from "@/lib/seo";
 import "./globals.css";
 
-const siteUrl =
-  process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.sumpreethtoursandtravels.com";
+const siteUrl = SITE_URL;
 
 const bodyFont = Inter({
   subsets: ["latin"],
